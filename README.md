@@ -1,0 +1,2 @@
+# JCell
+JCell is a Java framework for working mainly with cellular genetic algorithms (GAs), but also it has implemented steady-state GAs, generational GAs, and distributed GAs, developed in the University of Málaga. The design of JCell allows the user to implement any metaheuristic, operators, representations, etc, so it's perfect for our task of implementing several TOP-based problem. More info about the framework can be found here: http://neo.lcc.uma.es/software/jcell/
