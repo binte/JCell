@@ -56,11 +56,21 @@ public class JCell implements GenerationListener
     
     public static void main (String args[]) throws Exception
     {
-    	if (args.length != 5)
+
+/*Utilizar este código comentado caso seja passado o número de mutações a realizar por cromossoma por parâmetro */     	
+/*    	if (args.length != 5)
         {
-           System.out.println("Error. Try java JCell <ConfigFile> <DataFile> <GenerationLimit> <mutationsPerChromosome> <TestFlag>");
+           System.out.println("Error. Try java JCell <ConfigFile> <DataFile> <GenerationLimit> <TestFlag> <mutationsPerChromosome>");
            System.exit(-1);
         }
+*/
+    	
+    	if (args.length != 4)
+        {
+           System.out.println("Error. Try java JCell <ConfigFile> <DataFile> <GenerationLimit> <TestFlag>");
+           System.exit(-1);
+        }
+    	
     	
 		//Random r = new Random(3816L); // seed for the random number generator
     	Random r = new Random(); // seed for the random number generator
@@ -79,13 +89,15 @@ public class JCell implements GenerationListener
 		Problem prob = (Problem)ea.getParam(CellularGA.PARAM_PROBLEM);
 		
 		// se se tratar de uma execução de teste
-		if( Boolean.parseBoolean((args[4])) ) // activar a flag respetiva
-			prob.setTesting(Boolean.parseBoolean((args[4])));
+		if( Boolean.parseBoolean((args[3])) ) // activar a flag respetiva
+			prob.setTesting(Boolean.parseBoolean((args[3])));
 		else // se não se tratar de uma execução de teste
     		System.out.println(prob.toString());
+	
 		
-		// definir o número de mutações a realizar por cromossoma
-		ea.setParam(CellularGA.PARAM_MUTATIONS_PER_CHROMOSOME, Integer.parseInt(args[3]));
+/*Utilizar este código comentado caso seja passado o número de mutações a realizar por cromossoma por parâmetro */
+		// definir o número de mutações a realizar por cromossoma, caso esse valor seja passado
+//		ea.setParam(CellularGA.PARAM_MUTATIONS_PER_CHROMOSOME, Integer.parseInt(args[4]));
 		
 		
 		Population popAux = (Population) ea.getParam(CellularGA.PARAM_POPULATION);
@@ -369,11 +381,13 @@ public class JCell implements GenerationListener
 		  			  	//display2 = new CGADisplay(cea, problem.numberOfVariables(),CGADisplay.NO_TEXT + CGADisplay.DISPLAY_BESTDISTANCE);
 		  				//cea.setParam(CellularGA.PARAM_DISPLAY, display2);
 		  			  }
-		  		   }
+		   			}
+		   			
 		   			writeLine("New ratio: " + ratio);
 		   		}
 		   	}
 		}
+		
 	    // For the adaptive population case
 		
 		// Adaptive anisotropic selection

@@ -103,13 +103,11 @@ public class GenGA extends EvolutionaryAlg
 			
 			if (oper != null)
 		    {
-				ind[1] = (Integer)oper.execute(population.getIndividuals());
-				
-				while (ind[0].intValue() == ind[1].intValue())
-				{
-				    // It is not allowed the same parent to be selected twice
-				    ind[1] = (Integer)oper.execute(population.getIndividuals());
-				}
+				// It is not allowed the same parent to be selected twice
+				do
+					ind[1] = (Integer)oper.execute(population.getIndividuals());
+				while 
+					(ind[0].intValue() == ind[1].intValue());
 				
 				iv[1] = (Individual)population.getIndividual(ind[1].intValue()).clone();
 		    }
@@ -117,18 +115,19 @@ public class GenGA extends EvolutionaryAlg
             // Recombination
             oper = (Operator)operators.get("crossover");
             if (oper != null)
-               if (r.nextDouble() < crossoverProb)
+//               if (r.nextDouble() < crossoverProb)
                   iv[0] = (Individual) oper.execute(iv);
             
             // Mutation
             oper = (Operator) operators.get("mutation");
             if (oper != null)
                // the mutation operator is executed on all sons
-               if (r.nextDouble() < mutationProb)
+//               if (r.nextDouble() < mutationProb)
                   iv[0] = (Individual)oper.execute(iv[0]);
 
             // Local Search and evaluation of the new solution
             oper = (Operator)operators.get("local");
+            		
             if (oper != null)
                if (r.nextDouble() < localSearchProb)
                   iv[0] = (Individual)oper.execute(iv[0]);

@@ -17,7 +17,7 @@ public class ReplaceIfNonWorse implements Operator
    // Parametro array de individuos, devuelve individuo
    public Object execute(Object o)
    {
-      Individual iv[] = (Individual[])o;
+      Individual iv[] = (Individual[]) o;
       
       if (Target.isBetterOrEqual(iv[0], iv[1]))
          return iv[0];

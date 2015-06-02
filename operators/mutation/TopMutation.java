@@ -29,7 +29,7 @@ public class TopMutation implements Operator
 	
 	
 	// Parameter Individual, returns Individual
-	public Object execute(Object o, Point p, int lastWeight)  
+	public Object execute(Object o, Point p, int lastWeight)
 	{
 		TopIndividual ind = (TopIndividual) o;
 		int len = ind.getLength(); //Length of individual
@@ -47,15 +47,16 @@ public class TopMutation implements Operator
 	{
 		TopIndividual ind = (TopIndividual) o;
 		int len = ind.getLength(); //Length of individual
-		double prob = ((Double)this.ea.getParam(CellularGA.PARAM_ALLELE_MUTATION_PROB)).doubleValue(); 
-		int nGenes2mutate = (Integer)this.ea.getParam(CellularGA.PARAM_MUTATIONS_PER_CHROMOSOME);
-				
+		double prob = ((Double)this.ea.getParam(CellularGA.PARAM_ALLELE_MUTATION_PROB)).doubleValue() / 2; 
+
+//int nGenes2mutate = (Integer)this.ea.getParam(CellularGA.PARAM_MUTATIONS_PER_CHROMOSOME);				
 //int nGenes2mutate = ( ((len/2)-1) * ((Integer)this.ea.getParam(CellularGA.PARAM_GENERATION_NUMBER)).intValue() / 500/*((Integer)this.ea.getParam(CellularGA.PARAM_GENERATION_LIMIT)).intValue()*/ ) + 1; // número de genes a mutar nesta iteração
 //System.out.println("Geraçao: " + ((Integer)this.ea.getParam(CellularGA.PARAM_GENERATION_NUMBER)).intValue());
 //System.out.println("nGenes2mutate: " + nGenes2mutate);
 		
-		for (int i=0; i<nGenes2mutate ; i++)
-			ind.mutate(r,r.nextInt(len)); //Mutate a randomly chosen gene 
+		for (int i=0; i<len ; i++)
+			if (r.nextDouble() <= prob)
+				ind.mutate(r,i); //Mutate a randomly chosen gene 
 
       return ind;
    }

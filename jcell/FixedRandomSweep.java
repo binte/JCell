@@ -37,6 +37,7 @@ public class FixedRandomSweep extends CellUpdate
       Point cell = pop.toGrid(sweep.getIntegerAllele(pos));
       
       pos = (pos+1) % pop.getPopSize();
+      
       return cell;
    }
 }

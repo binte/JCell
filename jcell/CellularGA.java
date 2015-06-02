@@ -29,10 +29,10 @@ public class CellularGA extends EvolutionaryAlg
    // Run generationLimit generations (or evaluationLimit evaluations) of a cEA
    public void experiment()
    {
-   	PopGrid population = (PopGrid) super.population;
+	   PopGrid population = (PopGrid) super.population;
    	
-   	// Are we executing a Multi-Target Problem?
-   	boolean multiobjective = problem.numberOfObjectives() > 1;
+	   // Are we executing a Multi-Target Problem?
+	   boolean multiobjective = problem.numberOfObjectives() > 1;
    	
       double optimum; // Best fitness individual in the population
 	  double best = 0;
@@ -55,13 +55,15 @@ public class CellularGA extends EvolutionaryAlg
       	paretoFront.initialize(population);
       else
       {
-      	statistic.calculate(population);
+      	statistic.calculate(population);  // Calcular algumas estatísticas sobre a população
       
       	if (Target.maximize)
       		optimum = ((Double)statistic.getStat(SimpleStats.MAX_FIT_VALUE)).doubleValue();
-      	else optimum = ((Double)statistic.getStat(SimpleStats.MIN_FIT_VALUE)).doubleValue();
+      	else
+      		optimum = ((Double)statistic.getStat(SimpleStats.MIN_FIT_VALUE)).doubleValue();
+      	
       	if (Target.isBetterOrEqual(optimum, targetFitness))
-         return; // stop if we find the best solution
+      		return; // stop if we find the best solution
       }
       
       listener.generation(this);
@@ -80,7 +82,6 @@ public class CellularGA extends EvolutionaryAlg
     	  if(best < ((Double) statistic.getStat(SimpleStats.MAX_FIT_VALUE)).doubleValue())
     		  best = ((Double) statistic.getStat(SimpleStats.MAX_FIT_VALUE)).doubleValue();
     		  
-    	  
       	PopGrid auxPop = new PopGrid(population.getDimX(),population.getDimY());
 
          for (int k=0; k<population.getPopSize(); k++)
@@ -99,13 +100,12 @@ public class CellularGA extends EvolutionaryAlg
 			oper = (Operator)operators.get("selection2");
 			
 			if (oper != null)
-			{
-				neighPoints = neighborhood.getNeighbors(selectedCell);
-				population.getFromPoints(neighPoints,neighIndivs);
-				
+			{	
+				// It is not allowed the same parent to be selected twice
 				do
 	               	ind[1] = (Integer)oper.execute(neighIndivs);
-	            while (ind[0].intValue() == ind[1].intValue());
+	            while 
+	            	(ind[0].intValue() == ind[1].intValue());
 				
 				iv[1] = (Individual)neighIndivs[ind[1].intValue()].clone();
 			}
@@ -113,13 +113,13 @@ public class CellularGA extends EvolutionaryAlg
             // Recombination
             oper = (Operator)operators.get("crossover");
             if (oper != null)
-               if (r.nextDouble() < crossoverProb)
+//               if (r.nextDouble() < crossoverProb)
                   iv[0] = (Individual)oper.execute(iv);
             
             // Mutation
             oper = (Operator)operators.get("mutation");
             if (oper != null)
-               if (r.nextDouble() < mutationProb)
+//               if (r.nextDouble() < mutationProb)
                   iv[0] = (Individual)oper.execute(iv[0]);
 
             // Local search
@@ -139,7 +139,8 @@ public class CellularGA extends EvolutionaryAlg
             
             // if we are in the multiobjective case, insert the new solution into the archive
             // if it dominates or it is non-dominated with respect to the current individual
-            if (multiobjective && (iv[0].dominanceTest(iv[1]) >= 0)) paretoFront.Insert((Individual)iv[0].clone());
+            if (multiobjective && (iv[0].dominanceTest(iv[1]) >= 0)) 
+            	paretoFront.Insert((Individual)iv[0].clone());
             
             oper = (Operator)operators.get("replacement");
             iv[0] = (Individual)oper.execute(iv);
