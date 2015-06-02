@@ -21,13 +21,17 @@ import MO.*;
 
 
 import adaptiveCGA.*;
+
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Random;
 import java.util.Date;
 
 
 public class JCell implements GenerationListener
 {
-
+		
     // Default population shape
     static int x = 10;
     static int y = 10;
@@ -78,7 +82,7 @@ public class JCell implements GenerationListener
 		int displaySteps = ((Integer)ea.getParam(CellularGA.PARAM_DISPLAY_STEPS)).intValue();
 		
 		showDisplay = (ea.getParam(CellularGA.PARAM_DISPLAY) != null);
-		
+
 		inicio = (new Date()).getTime();
 
 		// generation cycles are performed in the next method
@@ -177,6 +181,7 @@ public class JCell implements GenerationListener
     
     public void generation(EvolutionaryAlg ea)
     {   
+  
     	//CellularGA cea = (CellularGA) ea;
     	verbose = ((Boolean) ea.getParam(CellularGA.PARAM_VERBOSE)).booleanValue();
 
@@ -187,8 +192,13 @@ public class JCell implements GenerationListener
 			int pos = ((Integer)((Statistic)ea.getParam(EvolutionaryAlg.PARAM_STATISTIC)).getStat(SimpleStats.MAX_FIT_POS)).intValue();
 			Individual bestInd = ((Population) ea.getParam(EvolutionaryAlg.PARAM_POPULATION)).getIndividual(pos);
 			Problem prob = (Problem)ea.getParam(EvolutionaryAlg.PARAM_PROBLEM);
-			if (prob.numberOfObjectives() == 1)
-				writeLine("Generation: " + (Integer) ea.getParam(CellularGA.PARAM_GENERATION_NUMBER) + "; Best individual: " + ((BinaryIndividual) bestInd).toString() + "\n");
+			if (prob.numberOfObjectives() == 1) {
+				
+				if( prob.getClass().getName().equals("problems.Combinatorial.TOP") )
+					writeLine("Generation: " + (Integer) ea.getParam(CellularGA.PARAM_GENERATION_NUMBER) + "; Best individual: " + ((TopIndividual) bestInd).toString() + "\n");
+				else
+					writeLine("Generation: " + (Integer) ea.getParam(CellularGA.PARAM_GENERATION_NUMBER) + "; Best individual: " + ((BinaryIndividual) bestInd).toString() + "\n");
+			}
 			else
 				writeLine("Generation: " + (Integer) ea.getParam(CellularGA.PARAM_GENERATION_NUMBER));
     	}
@@ -320,6 +330,7 @@ public class JCell implements GenerationListener
 		
 		Population pop = (Population)(ea.getParam(CellularGA.PARAM_POPULATION));
     }
+
     
     public EvolutionaryAlg getEA()
     {

@@ -266,7 +266,7 @@ public class ReadConf {
 			else // generational algorithms
 				if (popSize != null)
 					pop = new Population((new Integer(popSize)).intValue());
-			
+		
 			// Use of hierarchycal population?
 			String hierarchyName = properties.getProperty("HierarchycalPop");
 			Boolean useHierarchy = null;
@@ -351,7 +351,6 @@ public class ReadConf {
 			
 			else if (update == null)
 				writeLine("Update synchronousity not provided. Default value: " + synchronousUpdateDf);
-
 				
 			ea.setParam(CellularGA.PARAM_SYNCHR_UPDATE, new Boolean(synchronousUpdate));
 			ea.setParam(CellularGA.PARAM_STATISTIC, new ComplexStats());
@@ -515,8 +514,10 @@ public class ReadConf {
 
 			// Set the Individual
 			String indiv = properties.getProperty("Individual");
+
 			if (indiv == null)
 				throw new MissedPropertyException("Individual");
+			
 			c = Class.forName(indiv);
 			cons = c.getDeclaredConstructors();
 			Individual individual = null; // The individual is initialized here.
@@ -525,11 +526,23 @@ public class ReadConf {
 			individual.setMinMaxAlleleValue(false, problem.getMaxAllowedValues());
 			individual.setLength(problem.numberOfVariables());
 			individual.setNumberOfFuncts(problem.numberOfObjectives());
-			individual.setRandomValues(r);
+
+			/*
+			 * A primeira linha de c—digo parece-me escusada. 
+			 * 
+			 * Estas duas linhas devem ser comentadas caso o problema que se pretende estudar seja o TOP, 
+			 * sendo descomentada a seguinte.
 			
-			pop.setRandomPop(r,individual); // initialization of the random initial population
+			//individual.setRandomValues(r); Faz duas vezes (em baixo o c—digo executado Ž o mesmo)
+			
+			//pop.setRandomPop(r,individual); // initialization of the random initial population
+	
+			*/
+			
+			pop.setTopPop(individual, problem.variables); // initialization of the initial population
 			
 			CellUpdate cu = null;
+			
 			if (alg.contains("cellular"))
 			{
 				if (updateLC.contains("asynchronous ls"))
@@ -682,7 +695,6 @@ public class ReadConf {
 						recomb = (Operator) cons[i].newInstance(aux); // Constructor called
 						break;
 					}
-				
 					else if ((cons[i].getParameterTypes().length == 2) && cons[i].getParameterTypes()[0] == Random.class)
 					{
 
@@ -696,7 +708,6 @@ public class ReadConf {
 								recomb = (Operator) cons[i].newInstance(aux2); // Constructor called
 								break;
 					}
-					
 					else if ((cons[i].getParameterTypes().length == 2) && cons[i].getParameterTypes()[0] == Double.class)
 					{
 						// The first parameter is a recombination specific parameter, and it will be set later

@@ -112,7 +112,9 @@ public class ComplexStats implements Statistic
       // Initialize values for calculating Phenotipic entropy	(Added by Bernabe Dorronsoro)
       int indLength = pop.getIndividual(0).getLength();
       double entropy[] = new double[indLength];
-      for(i=0;i<indLength;i++)	entropy[i] = 0.0;
+      
+      for(i=0;i<indLength;i++)	
+    	  entropy[i] = 0.0;
       
       // calculate statistics
       for (i=0; i<popSize; i++)
@@ -122,12 +124,18 @@ public class ComplexStats implements Statistic
              continue;
          
          auxFit = ((Double)ind.getFitness()).doubleValue();
+         
+         // A vari‡vel sumFit vai conter a soma de todos os valores de fitness dos genes do cromossoma
          sumFit += auxFit;
+         
+         // O m‡ximo valor de fitness fica contido na vari‡vel maxFitValue, e o ’ndice equivalente na vari‡vel maxFitPos
          if (auxFit > maxFitValue)
          {
             maxFitValue = auxFit;
             maxFitPos = i;
          }
+         
+         //O menor valor de fitness fica contido na vari‡vel minFitValue, e o ’ndice equivalente na vari‡vel minFitPos
          if (auxFit < minFitValue)
          {
             minFitValue = auxFit;
@@ -136,15 +144,18 @@ public class ComplexStats implements Statistic
 
 
          frec = 1;
+         
          for (int j=i+1; j<popSize; j++)
          {
             indAux = popAux.getIndividual(j);
+            
             if (indAux != null && ind.equals(indAux))
             {
                frec++;
                popAux.setIndividual(j,null);
             }
          }
+         
          entropyGen += (((double)frec)/popSize) *
                        log2(((double)popSize)/frec);
          
@@ -157,6 +168,7 @@ public class ComplexStats implements Statistic
          }
          	
       }
+      
       avgFit = sumFit / popSize;
       entropyGen /= log2((double)popSize);
       
@@ -165,6 +177,7 @@ public class ComplexStats implements Statistic
          auxFit = ((Double)pop.getIndividual(i).getFitness()).doubleValue();
          varianceFit += (auxFit - avgFit)*(auxFit - avgFit);
       }
+      
       varianceFit /= popSize;
       stdDevFit = Math.sqrt(varianceFit);
       pearsonFit = stdDevFit / avgFit;
@@ -182,7 +195,6 @@ public class ComplexStats implements Statistic
 		
 		entropyPhen /= (double)(indLength);
       }
-
    }
    
    public String toString()

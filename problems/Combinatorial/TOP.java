@@ -12,7 +12,10 @@ package problems.Combinatorial;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Random;
 import java.util.Scanner;
 
 import jcell.*; //Use jcell package
@@ -21,7 +24,7 @@ public class TOP extends Problem
 {
 	private static final double maxFitness = 1; // Maximum Fitness Value
 	
-	private int F;  		// número de vértices passíveis de serem atingidos
+	private int F;  		// número de vértices
 	private int T;  		// número de viajantes (travellers)
     private float deadline;	// tempo máximo por viagem
     
@@ -29,6 +32,9 @@ public class TOP extends Problem
 	private double matrix[][];				// matriz de distâncias
 	
 	private int totalScore;	// soma dos pesos de todas as tarefas que passaram o filtro
+	
+	private double bestFitness;
+	private ArrayList<Integer>[] bestTrip;
     
 
     public TOP()
@@ -38,7 +44,7 @@ public class TOP extends Problem
     	Target.maximize = true;
     	    	    	
     	try {
-        	BufferedReader reader = new BufferedReader(new FileReader("p2.2.b.txt"));
+        	BufferedReader reader = new BufferedReader(new FileReader("p1.4.r.txt"));
         	Scanner input = new Scanner(reader);
 
         	this.F = Integer.parseInt(DataLoading.getParameter(input));
@@ -48,16 +54,22 @@ public class TOP extends Problem
     		
     		DataLoading.readFile(input, this.vertices);
     		
+			// calcular a soma dos pesos de todas as tarefas antes da execução do filtro
+			for (int i = 0; i <= this.F - 1; i++)
+				this.totalScore += vertices.get(i).getScore();
+			
 			this.filter();
     		this.buildMatrix(); // construir a matriz de distâncias
     		
-System.out.println(this.toString());
-
-			// calcular a soma dos pesos de todas as tarefas que passaram o filtro
-			for (int i = 1; i < this.variables; i++)
-				this.totalScore += vertices.get(i).getScore();
-    		
     		input.close();
+    		
+    		this.bestFitness = 0.0;
+    		this.bestTrip = new ArrayList[this.T];
+    		
+    		for(int i=0 ; i<this.T ; i++)
+    			this.bestTrip[i] = new ArrayList<Integer>();
+    		
+System.out.println(this.toString());
     	}
     	catch (FileNotFoundException ex) {
     		System.err.println("Unable to open file: " + ex);
@@ -78,6 +90,13 @@ System.out.println(this.toString());
     		System.exit(-1);
     	}
     }
+    
+    
+    public ArrayList<Integer>[] getBestTrip() {
+    	
+    	return this.bestTrip;
+    }
+    
     
     /* Filtrar os vértices que nunca serão tomados, ou seja, que não respeitam a seguinte restrição:
      * 
@@ -150,41 +169,241 @@ System.out.println(this.toString());
 
     public Object eval(Individual ind)
     {
-		BinaryIndividual bi = (BinaryIndividual)ind;
-		double fitness = 0.0;
-		boolean feasible = true;
-		double time = 0;
-		int lastVertice = 0;
-		double penalty = 0.0;
-		double first = 0.0; // soma dos pesos das tarefas com gene = 0
+		// viagem -> array auxiliar que irá conter as viagens que serão construídas para cada viajante num dado cromossoma
+		// viagens -> array auxiliar que irá conter todos os vértices "ocupados" num dado instante num dado cromossoma
+		// maxValues -> array auxiliar que irá ser utilizado para guardar os índices dos genes de maior prioridade dum cromossoma
+		// auxBlackList -> Lista auxiliar que irá conter os índices dos genes de maior prioridade que não podem ser tomados
+		// blackList -> Lista auxiliar que irá conter os índices dos genes descartados ao longo duma viagem
+    	// fl -> flag utilizada para assinalar a escolha dum gene
+    	// flag -> flag utilizada para saber se o tempo máximo da viagem foi atingido
+		// counter -> contador para o #posições que é necessário ignorar dos sucessivos arrays maxValues, por estarem na blacklist
+    	// size -> contador para o número de genes escolhidos nas viagens de todos os viajantes
+    	
+    	ArrayList<Integer>[] viagens_aux = new ArrayList[this.T];  	
+    	ArrayList<Integer> maxValues = new ArrayList<Integer>(), viagens = new ArrayList<Integer>(), blackList = new ArrayList<Integer>(), auxBlackList = new ArrayList<Integer>();
+    	TopIndividual intInd = (TopIndividual) ind;
+    	Random r = new Random();
+    	boolean fl = false, flag;
+		double fitness = 0.0, time = 0.0;
+		int j, lastVertice = 0, min, topPriorityGene = -1, random, counter;
 		
-	
-		for (int i = 1; i < this.variables; i++) {
 
-		    if (bi.getBooleanAllele(i)) { // se gene na posição 'i' = 1
+		// inicializar o array que irá conter as viagens
+		for(j=0 ; j<this.T ; j++)
+			viagens_aux[j] = new ArrayList<Integer>();
+		
+		
+		// ciclo para percorrer os viajantes
+		for(j=0 ; j<this.T ; j++) {
+		
+			flag=true;
+			
+			// ciclo para preencher ordenadamente o array viagem, até que a sua duração seja máxima
+			while( flag ) {
+						
+				
+//System.out.println("ENTROU!");
+//System.out.println("fl: " + fl + "\nblackList.size: " + blackList.size() + "\nviagens.size: " + viagens.size());
 
-		    	if (time + this.getDistance(lastVertice, i) + this.getDistance(i, this.variables-1) > deadline) { // se o plano for inadmissível
-				    feasible = false;
-				    penalty += vertices.get(i).getScore();
-				} 
-				else {// se o plano for admissível
-					fitness += vertices.get(i).getScore(); // atualiza o valor do fitness
-				    time += this.getDistance(lastVertice, i); // atualiza o timing do plano
+//System.out.println("--------------- VIAGENS ---------------");
+//for (int h=0 ; h < viagens.size() ; h++)
+	//System.out.println("indice " + h + ": " + viagens.get(h));
+//System.out.println("---------------------------------------");
+				
+//pressEnterToContinue();
+
+
+				/* Ciclo utilizado para escolher o vértice de maior prioridade que caiba na viagem, executando os seguintes passos até
+				um vértice ser escolhido, ou até todos serem percorridos
+						-> Escolher os vértices de maior prioridade
+						-> Aleatoriamente ir escolhendo um desses vértices, até um encaixar na viagem, ou até todos terem sido percorridos							
+				*/			
+				while( !fl && ((int) blackList.size()) + viagens.size() < this.variables - 2 ) {
+					
+					// inicializar a variável que irá conter o menor valor dos genes do cromossoma
+					min = (this.variables >= 10 ? this.variables + 1 : 10);
+					
+					// Percorrer os genes do cromossoma
+					for (int i = 1; i < this.variables - 1; i++) {
+						
+						/* se o gene que se encontra a ser processado tiver prioridade igual ou superior à máxima prioridade encontrada,
+						se ainda não estiver marcado para ser visitado por um viajante e se o gene não estiver na blacklist, indicando
+						que já terá sido descartado desta viagem.... */
+						if(intInd.getIntegerAllele(i) <= min && !viagens.contains(i) && !blackList.contains(i)) {
+							
+							if(intInd.getIntegerAllele(i) != min) {
+								maxValues.clear();
+								min = intInd.getIntegerAllele(i);
+							}
+							
+							/* guardar o índice do gene na lista que contém 
+							 os índices dos genes de valor máximo */
+							maxValues.add(i);
+						}
+					}
+					
+
+					// se existirem vários genes com o mesmo valor (máximo)
+					if(maxValues.size() > 1) {
+//System.out.println("MAX VALUES > 1");
+						// escolher um gene de forma aleatória
+						r = new Random(System.currentTimeMillis());
+						random = r.nextInt(maxValues.size());
+						topPriorityGene = maxValues.get(random);
+					}
+					else { // se apenas existir um gene com o valor máximo
+//System.out.println("MAX VALUES == 1");
+						topPriorityGene = maxValues.get(0);
+						random = 0;
+					}
+					
+								
+					 // se o gene escolhido couber na rota
+			    	if (time + this.getDistance(lastVertice, topPriorityGene) + this.getDistance(topPriorityGene, this.variables - 1) <= this.deadline)
+						fl = true;  // indicar a escolha dum gene
+					else {
+				 
+	 					counter = 0;
+
+						// percorrer todos os vértices de prioridade máxima ainda não escolhidos até um caber na viagem
+						for(int k=0 ; !fl && (k+1)<maxValues.size() ; k++) {
+							
+							int kk;
+							
+							// colocar o seu índice no array de genes com prioridade máxima, na blacklist
+							auxBlackList.add(random + counter);
+							blackList.add(maxValues.get(random + counter));
+							
+							
+							// escolher novo gene com prioridade máxima, de forma aleatória
+							random = r.nextInt(maxValues.size() - (k+1));
+				
+							
+							// ordenar os arrays blackList e auxBlackList
+							Collections.sort(auxBlackList);
+							Collections.sort(blackList);
+														
+  	
+							// ciclo para contar o número de posições que é preciso saltar do array maxValues, por estarem na blacklist
+							for(counter=0, kk=0 ; kk <= k ; kk++)
+								if(auxBlackList.get(kk) <= random+counter)
+									counter++;
+  	
+							topPriorityGene = maxValues.get(random + counter);	// guardar o índice do novo gene escolhido aleatoriamente
+//System.out.println("TOP PRIORITY GENE: " + topPriorityGene);			
+
+							
+							// se o tempo máximo da viagem com o novo gene escolhido não exceder deadline
+							if( time + this.getDistance( (viagens_aux[j].size()==0) ? 0 : lastVertice, topPriorityGene) + 
+									   this.getDistance(topPriorityGene, this.variables - 1) <= this.deadline ) {
+																	
+								fl = true;  // assinalar a escolha dum gene
+							}
+						}
+
+						// limpar a blacklist, para que numa próxima iteração do ciclo acima esta esteja vazia
+						auxBlackList.clear();
+						
+						blackList.add(maxValues.get(random + counter));
+						
+					}	    	
 				}
 				
-				lastVertice = i;
-		    }
-	
-		    if (!bi.getBooleanAllele(i)) // se gene na posição 'i' = 0
-		    	first += vertices.get(i).getScore();	
-		}
-	    
-		if (feasible) { // se o plano tiver sido classificado como admissível
-		    fitness = 1.0 / (this.totalScore + 1 - fitness);
-		} else { // caso contrário
-		    fitness = 1 / (this.totalScore*2 + penalty);
-		}
+				// limpar a blacklist e o array maxValues, para que numa próxima iteração do ciclo acima estes estejam vazios
+				blackList.clear();
+				maxValues.clear();
+				
+				
+				/* A 2ª restrição é implementada dentro do if abaixo */		
+				
+				// se um gene tiver sido seleccionado para ser colocado na viagem
+				if(fl) {
+					
+					// atualizar a variável t com o tempo já percorrido
+				    time += this.getDistance(lastVertice, topPriorityGene); // atualiza o tempo de duração da rota
+																		
+					// atualizar arrays viagens e viagem com esse gene
+					viagens_aux[j].add(topPriorityGene);
+					viagens.add(topPriorityGene);
+					
+					// atualizar o peso do alelo
+					intInd.setAllele(topPriorityGene, viagens.size());
+		  	
+					// na próxima iteração deste ciclo, o último vértice tomado será o que agora foi inserido nas rotas
+		    		lastVertice = topPriorityGene;
+		  	
+					// mas se o tempo máximo da viagem tiver sido atingido
+					if( this.deadline == time + this.getDistance(topPriorityGene, this.variables - 1) )
+						flag = false;  // atualizar a flag para sair do ciclo
+					
+					// mudar o valor da flag que assinala a escolha dum gene para colocar na viagem para recomeçar novo processo
+					fl = false;
+					
+/*
+System.out.println("top priority gene: " + topPriorityGene);
+System.out.println("SCORE: " + vertices.get(topPriorityGene).getScore());
 
+System.out.println("--------------- VIAGENS ---------------");
+for (int h=0 ; h < viagens.size() ; h++)
+	System.out.println("indice " + h + ": " + viagens.get(h));
+System.out.println("---------------------------------------");
+*/
+				    
+					// atualiza o valor do fitness
+					fitness += vertices.get(topPriorityGene).getScore();
+				}
+				else  // caso contrário (se nenhum dos vértices de alta prioridade couber no fim da viagem)
+					flag = false;  // atualizar a flag para sair do ciclo
+			}
+			
+			
+			// reinicializar as variáveis necessárias para controlar a evolução duma viagem dum viajante
+			lastVertice = 0;
+			time = 0.0;
+		}
+		
+		fitness = fitness/this.totalScore;
+		
+		if(fitness > this.bestFitness) {
+			
+			this.bestFitness = fitness;
+			this.bestTrip = viagens_aux;
+			
+			
+			for(int i=0 ; i<this.T ; i++) {
+
+				System.out.println("-------------- VIAGEM " + i + " ---------------");
+				
+				for (int h=0 ; h < this.bestTrip [i].size() ; h++)
+					System.out.println("indice " + h + ": " + this.bestTrip [i].get(h));
+				
+				System.out.println("---------------------------------------");
+			}
+			
+			System.out.println("\n");
+/*
+System.out.println("--------------- VIAGENS ---------------");
+for (int h=0 ; h < viagens.size() ; h++)
+	System.out.println("indice " + h + ": " + viagens.get(h));
+System.out.println("---------------------------------------");*/
+		}
+/*		else {
+			
+			System.out.println("PASSOU");
+			
+			for(int i=0 ; i<this.T ; i++) {
+
+				System.out.println("-------------- VIAGEM " + i + " ---------------");
+				
+				for (int h=0 ; h < this.bestTrip [i].size() ; h++)
+					System.out.println("indice " + h + ": " + this.bestTrip [i].get(h));
+				
+				System.out.println("---------------------------------------");
+			}
+		}*/
+			
+//		this.pressEnterToContinue();
+		
 		return new Double(fitness);
     }
     
@@ -212,6 +431,9 @@ System.out.println(this.toString());
     		sb.append(this.vertices.get(i).toString() + "\n");
 
     	sb.append("\n");
+    	
+    	sb.append("Total Premios: " + this.totalScore + "\n");
+    	
     	sb.append("------------------------------------\n");
     	sb.append("-------------- MATRIX --------------\n");
     	sb.append("------------------------------------\n");
@@ -235,11 +457,29 @@ System.out.println(this.toString());
 
     		//imprimir os valores da linha truncados (e arredondados) a 4 dígitos
     		for(j=i+1 ; j<this.variables ; j++)			
-    				sb.append(matrix[i][j] + "	");
+    			sb.append(matrix[i][j] + "	");
 
     		sb.append("\n");
     	}
     	
     	return sb.toString();
+    }
+    
+
+    
+    private static void pressEnterToContinue() {
+    	
+        System.out.println("Press ENTER to continue...");
+        
+        try {
+        
+        	System.in.read();
+            
+        	while (System.in.available() > 0)
+                System.in.read(); //flush the buffer
+        } 
+        catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

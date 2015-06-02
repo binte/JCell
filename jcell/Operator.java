@@ -8,6 +8,8 @@
    
 package jcell;
 
+import java.awt.Point;
+
 public interface Operator
 {
    //Runs the operator

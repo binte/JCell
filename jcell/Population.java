@@ -65,6 +65,16 @@ public class Population
       }
    }
    
+   // Build a random population of individuals with the same genotype as 'ind'
+   public void setTopPop(Individual ind, int value)
+   {
+      for (int i=0; i<popSize; i++)
+      {
+         population[i] = (TopIndividual) ind.clone();
+         ((TopIndividual)population[i]).setValues(value); 
+      }
+   }
+   
    public void setRandomPop(Random r, Individual ind, double maxFitness)
    {
 

@@ -21,6 +21,7 @@ public abstract class Problem
    protected Vector maxAllowedValues = null;
    protected Vector minAllowedValues = null;
    
+   
    public void reset()
    {
       nEvals = 0;
@@ -30,12 +31,13 @@ public abstract class Problem
    {
       return nEvals;
    }
+      
    
    public Object evaluate(Individual ind)
    {
       Object fit = eval(ind); // get the fitness value
       
-      nEvals++; // increase number of evaluations
+      this.nEvals++; // increase number of evaluations
       ind.setFitness(fit); // set the fitness to the individual
       
       if (fit.getClass() == Double[].class)

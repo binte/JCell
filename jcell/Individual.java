@@ -30,7 +30,7 @@ public abstract class Individual implements Cloneable
    // For the multiobjective case
    
    // For the hierarchical model
-   int level;	// The level of the hierarchy an individual is on  
+   int level;	// The level of the hierarchy an individual is on
    int x,y;		//the cellular position
    int lastMove = Hierarchy.MOVE_NO;
    int noMoveCount;
@@ -194,7 +194,7 @@ public abstract class Individual implements Cloneable
 
 	}
 	
-	// Compares the number of violated constraits of two individuals
+	// Compares the number of violated constraints of two individuals
 	// returns:-1 if this individual violates less constraints than the the individual passed as parameter
 	//          1 if the individual passed as parameter violates less constraints than the current individual
 	//          0 otherwise

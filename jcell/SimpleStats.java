@@ -48,6 +48,8 @@ public class SimpleStats implements Statistic
    
    public void calculate(Population pop)
    {
+	   
+System.out.println("PASSOU");
       double auxFit, sumFit;
       int popSize = pop.getPopSize();
       

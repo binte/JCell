@@ -9,12 +9,16 @@
 package genEA;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Random;
 
 import jcell.*;
 
-public class GenGA extends EvolutionaryAlg
+public class GenGA extends EvolutionaryAlg 
 {
+
    public GenGA(Random r)
    {
       super(r);
@@ -32,13 +36,14 @@ public class GenGA extends EvolutionaryAlg
     Operator oper;
     Individual iv[] = new Individual[2]; // Used for crossover
     Integer ind[] = new Integer[2]; // Used for avoiding that the same individual is selected twice in selection
-      
+
 	Population auxPop = new Population(population.getPopSize());
-		
+
     problem.reset(); // Set the number of evaluations to 0
 
 	//invoca o método eval() para todos os cromossomas da população
     problem.evaluatePopulation(population);
+
     
     int worst = 0, best = 0;
     
@@ -57,24 +62,26 @@ public class GenGA extends EvolutionaryAlg
     }
 	else // if the problem is not multiobjective
 	{
-	  // Compute some statistic measures from the population
+    
+		// Compute some statistic measures from the population
       statistic.calculate(population);
     
 	  if (Target.maximize) // if it is a maximization problem
 	  	optimum = ((Double)statistic.getStat(SimpleStats.MAX_FIT_VALUE)).doubleValue();
 	  else  // if it is a minimization problem
 		  optimum = ((Double)statistic.getStat(SimpleStats.MIN_FIT_VALUE)).doubleValue();
-System.out.println("mine optimum: " + optimum + "\ntargetFitness: " + targetFitness);	  
+
 	  if (Target.isBetterOrEqual(optimum, targetFitness))
 		  return; // stop if the solution is found
 	}
 
     generationNumber = 0;
     listener.generation(this);
+   
 
       // For the termination condition we can set either a max number of generations or a max number of evaluations
       while ((problem.getNEvals() < evaluationLimit) && (generationNumber < generationLimit))
-      {	  
+      {
     	 // Insert the best individual in the population into the new population (elitism) 
       	 if (multiobjective)
       		auxPop.setIndividual(0, population.getIndividual(best));
@@ -88,10 +95,10 @@ System.out.println("mine optimum: " + optimum + "\ntargetFitness: " + targetFitn
         	// BREEDING LOOP:
         	 
             // First parent selection
-			oper = (Operator)operators.get("selection1");
-			ind[0] = (Integer)oper.execute(population.getIndividuals());
+			oper = (Operator) operators.get("selection1");
+			ind[0] = (Integer) oper.execute(population.getIndividuals());
 			
-			iv[0] = (Individual)population.getIndividual(ind[0].intValue()).clone();
+			iv[0] = (Individual) population.getIndividual(ind[0].intValue()).clone();
 
 			// Second parent selection
 			oper = (Operator)operators.get("selection2");
@@ -110,10 +117,10 @@ System.out.println("mine optimum: " + optimum + "\ntargetFitness: " + targetFitn
             oper = (Operator)operators.get("crossover");
             if (oper != null)
                if (r.nextDouble() < crossoverProb)
-                  iv[0] = (Individual)oper.execute(iv);
+                  iv[0] = (Individual) oper.execute(iv);
             
             // Mutation
-            oper = (Operator)operators.get("mutation");
+            oper = (Operator) operators.get("mutation");
             if (oper != null)
                // the mutation operator is executed on all sons
                if (r.nextDouble() < mutationProb)
@@ -133,7 +140,6 @@ System.out.println("mine optimum: " + optimum + "\ntargetFitness: " + targetFitn
 
             // if we are in the multiobjective case, insert the new solution into the archive
             if (multiobjective) paretoFront.Insert((Individual)iv[0].clone());
-            
          }       
          
          // Replace the current population by the new one
@@ -142,10 +148,13 @@ System.out.println("mine optimum: " + optimum + "\ntargetFitness: " + targetFitn
          if (!multiobjective)
          {
          	statistic.calculate(population);
+         	
          	if (Target.maximize)
  	         	optimum = ((Double)statistic.getStat(SimpleStats.MAX_FIT_VALUE)).doubleValue();
- 	         else optimum = ((Double)statistic.getStat(SimpleStats.MIN_FIT_VALUE)).doubleValue();
- 	         if (Target.isBetterOrEqual(optimum, targetFitness))
+ 	         else 
+ 	        	 optimum = ((Double)statistic.getStat(SimpleStats.MIN_FIT_VALUE)).doubleValue();
+ 	        
+         	if (Target.isBetterOrEqual(optimum, targetFitness))
  	            return; // stop if the best solution is found
          }
          else
@@ -159,6 +168,8 @@ System.out.println("mine optimum: " + optimum + "\ntargetFitness: " + targetFitn
      	   			  best = i;
      	      }
          }
+         
+
          
          generationNumber++;
          // listener is a class for monitoring the search, if needed
