@@ -85,8 +85,11 @@ public class JCell implements GenerationListener
     		System.out.println(prob.toString());
 		
 		Population popAux = (Population) ea.getParam(CellularGA.PARAM_POPULATION);
-		popAux.setPopSize(prob.getVariables()*2);
 		
+				
+		if(conf.getProperties().getProperty("Algorithm").equalsIgnoreCase("generational") && conf.getProportion()!=0)
+			popAux.setPopSize( (int) (prob.getVariables()*conf.getProportion()) );
+							
 		// Set the Individual
 		String indiv = conf.getProperties().getProperty("Individual");
 
@@ -236,9 +239,8 @@ public class JCell implements GenerationListener
 					System.out.println(best + " " + (Integer) ea.getParam(CellularGA.PARAM_GENERATION_NUMBER)+" "+ evals +" "+(fin-inicio) + " " 
 						+ ((Problem) ea.getParam(CellularGA.PARAM_PROBLEM)).getClass().getName());
 			
-			
 			if( prob.testing() & prob.getClass().getName().equalsIgnoreCase("problems.Combinatorial.TOP"))
-				System.out.println(((problems.Combinatorial.TOP )prob).getCollected());
+				System.out.format("%d;%d", ((problems.Combinatorial.TOP)prob).getCollected(), ((problems.Combinatorial.TOP)prob).getIteration());
 		}
     }
     
@@ -272,8 +274,12 @@ public class JCell implements GenerationListener
 			Problem prob = (Problem)ea.getParam(EvolutionaryAlg.PARAM_PROBLEM);
 			
 			if (prob.numberOfObjectives() == 1) {	
-				if( prob.getClass().getName().equals("problems.Combinatorial.TOP") )
+				if( prob.getClass().getName().equals("problems.Combinatorial.TOP") ) {
+				
+					((problems.Combinatorial.TOP)prob).setIteration((Integer) ea.getParam(CellularGA.PARAM_GENERATION_NUMBER));
+					
 					writeLine("Generation: " + (Integer) ea.getParam(CellularGA.PARAM_GENERATION_NUMBER) + "; Best individual: " + ((TopIndividual) bestInd).toString() + "\n");
+				}
 				else
 					writeLine("Generation: " + (Integer) ea.getParam(CellularGA.PARAM_GENERATION_NUMBER) + "; Best individual: " + ((BinaryIndividual) bestInd).toString() + "\n");
 			}

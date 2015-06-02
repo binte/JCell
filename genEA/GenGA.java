@@ -153,7 +153,7 @@ public class GenGA extends EvolutionaryAlg
          	if (Target.maximize)
  	         	optimum = ((Double)statistic.getStat(SimpleStats.MAX_FIT_VALUE)).doubleValue();
  	         else 
- 	        	 optimum = ((Double)statistic.getStat(SimpleStats.MIN_FIT_VALUE)).doubleValue();
+ 	        	optimum = ((Double)statistic.getStat(SimpleStats.MIN_FIT_VALUE)).doubleValue();
  	        
          	if (Target.isBetterOrEqual(optimum, targetFitness))
  	            return; // stop if the best solution is found

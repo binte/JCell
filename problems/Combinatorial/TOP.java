@@ -33,6 +33,7 @@ public class TOP extends Problem
 	
 	private int totalScore;	// soma dos pesos de todas as tarefas que passaram o filtro
 	private int collected;  // some dos prémios recolhidos 
+	private int iteration;  // iteração em que foi encontrado o melhor fitness
 	
 	private double bestFitness;
 	private ArrayList<Integer>[] bestTrip;
@@ -103,10 +104,20 @@ public class TOP extends Problem
     	return this.collected;
     }
     
+    public int getIteration() {
+    	
+    	return this.iteration;
+    }
     
     public ArrayList<Integer>[] getBestTrip() {
     	
     	return this.bestTrip;
+    }
+    
+    
+    public void setIteration(int iteration) {
+    	
+    	this.iteration = iteration;
     }
     
     
@@ -421,7 +432,7 @@ for (int h=0 ; h < viagens.size() ; h++)
 System.out.println("---------------------------------------");
 this.pressEnterToContinue();
 */
-				    
+	
 					// atualiza o valor do fitness
 					fitness += vertices.get(topPriorityGene).getScore();
 				}

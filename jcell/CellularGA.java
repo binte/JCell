@@ -76,7 +76,7 @@ public class CellularGA extends EvolutionaryAlg
       	PopGrid auxPop = new PopGrid(population.getDimX(),population.getDimY());
          for (int k=0; k<population.getPopSize(); k++)
          {
-        	 // BREEDING LOOP:
+        	// BREEDING LOOP:
             selectedCell = cellUpdate.nextCell(); // Go to next cell
             neighPoints = neighborhood.getNeighbors(selectedCell);
             population.getFromPoints(neighPoints,neighIndivs);

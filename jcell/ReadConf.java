@@ -44,6 +44,7 @@ public class ReadConf {
 	protected StoreProperties properties;
 	protected Random r;
 	protected Boolean verbose = new Boolean(true);
+	protected Double proportion;
 	
 	private final static int evaluationsLimitDf		= 1000000;
 	private final static String popSizeDf			= "(10, 10)";
@@ -118,6 +119,13 @@ public class ReadConf {
 			return valor;
 		}
 	}
+	
+	
+	public Double getProportion() {
+		
+		return this.proportion;
+	}
+	
 
 	public ReadConf(String filename, String dataFile, Random r) {
 		
@@ -125,7 +133,8 @@ public class ReadConf {
 		this.filename = filename;
 		this.dataFile = dataFile;
 		this.r = r;
-		properties = new StoreProperties();
+		this.properties = new StoreProperties();
+		this.proportion = 0.0;
 	}
 
 	public void SetConfFile(String filename) {
@@ -224,6 +233,9 @@ public class ReadConf {
 			if (popSize != null)
 				begin = popSize.indexOf("(") + 1;
 			
+			if(begin == 0)
+				begin = popSize.indexOf("[") + 1;
+			
 			int x=0, y=0;
 			
 			if ((begin == 0) && (alg.equalsIgnoreCase("cellular")))
@@ -235,7 +247,7 @@ public class ReadConf {
 				int totalPopSize = (new Integer(popSize)).intValue();
 				pop = new PopIsland(isl,totalPopSize/isl);
 			}
-			else if (begin != 0)
+			else if (begin != 0 && !alg.equalsIgnoreCase("generational"))
 			{
 				end   = popSize.indexOf(",");
 				x = (new Integer(popSize.substring(begin,end).trim())).intValue();
@@ -252,10 +264,19 @@ public class ReadConf {
 				pop = new Population((new Integer(popSize)).intValue());
 				// pop = new OrderedPop((new Integer(popSize)).intValue());
 			}
-			
 			else // generational algorithms
 				if (popSize != null)
-					pop = new Population((new Integer(popSize)).intValue());
+					if (begin != 0) {
+						
+						begin = popSize.indexOf("[") + 1;
+						end = popSize.indexOf("]");
+						
+						this.proportion = (new Double(popSize.substring(begin, end).trim()));
+						
+						pop = new Population(10);
+					}
+					else
+						pop = new Population((new Integer(popSize)).intValue());
 		
 			// Use of hierarchycal population?
 			String hierarchyName = properties.getProperty("HierarchycalPop");
