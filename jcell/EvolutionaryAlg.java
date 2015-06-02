@@ -33,14 +33,15 @@ public abstract class EvolutionaryAlg
    public static final int PARAM_SELECTED_CELL     = 12; //Current cell
    public static final int PARAM_GENERATION_LIMIT  = 13; //Generations Limit
    
-   public static final int PARAM_ALLELE_MUTATION_PROB = 14; // Gene mutation probability (applied after selecting to mutate a given individual)
-   public static final int PARAM_EVALUATION_LIMIT	  = 15; // Max. number of evaluations
+   public static final int PARAM_MUTATIONS_PER_CHROMOSOME = 14;  // Número de mutações a realizar em cada cromossoma
+   public static final int PARAM_ALLELE_MUTATION_PROB = 15; // Gene mutation probability (applied after selecting to mutate a given individual)
+   public static final int PARAM_EVALUATION_LIMIT	  = 16; // Max. number of evaluations
    
-   public static final int PARAM_ANISOTROPIC_ADAPTATION = 16; // For the adaptation of the anisotropic selection
+   public static final int PARAM_ANISOTROPIC_ADAPTATION = 17; // For the adaptation of the anisotropic selection
 
-   public static final int PARAM_MIGRATION_FREQUENCY  = 17; // Migration frequency for the islands model
+   public static final int PARAM_MIGRATION_FREQUENCY  = 18; // Migration frequency for the islands model
    
-   public static final int PARAM_NEWS     = 21; //NEWS neighborhhod
+   public static final int PARAM_NEWS     = 21; //NEWS neighborhood
    
    // For the multi-objective case
    public static final int PARAM_SOLUTION_FRONT		= 23; // The solution front
@@ -84,6 +85,7 @@ public abstract class EvolutionaryAlg
    protected Point        selectedCell;
    protected boolean	  synchronousUpdate;
    protected double       mutationProb;
+   protected int 		  mutationsPerChromosome;
    protected double       crossoverProb;
    protected double       localSearchProb;
    protected double       targetFitness;
@@ -145,6 +147,7 @@ public abstract class EvolutionaryAlg
       listener = null;
       problem = null;
       selectedCell = null;
+      this.mutationsPerChromosome = 1;
       mutationProb = 1.0;
       crossoverProb = 1.0;
       localSearchProb = 0.0;
@@ -178,39 +181,40 @@ public abstract class EvolutionaryAlg
    {
       switch (keyValue)
       {
-         case PARAM_POPULATION:				return population;
-         case PARAM_STATISTIC:				return statistic;
-         case PARAM_NEIGHBOURHOOD:			return neighborhood;
-         case PARAM_CELL_UPDATE:			return cellUpdate;
-         case PARAM_LISTENER:				return listener;
-         case PARAM_PROBLEM:				return problem;
-         case PARAM_MUTATION_PROB:			return new Double(mutationProb);
-         case PARAM_CROSSOVER_PROB:			return new Double(crossoverProb);
-         case PARAM_LOCAL_SEARCH_PROB:		return new Double(localSearchProb);
-         case PARAM_TARGET_FITNESS:			return new Double(targetFitness);
-         case PARAM_GENERATION_NUMBER:		return new Integer(generationNumber);
-         case PARAM_SELECTED_CELL:			return selectedCell;	
-         case PARAM_GENERATION_LIMIT: 		return new Integer(generationLimit);
-         case PARAM_ALLELE_MUTATION_PROB:	return new Double(alleleMut);
+         case PARAM_POPULATION:					return population;
+         case PARAM_STATISTIC:					return statistic;
+         case PARAM_NEIGHBOURHOOD:				return neighborhood;
+         case PARAM_CELL_UPDATE:				return cellUpdate;
+         case PARAM_LISTENER:					return listener;
+         case PARAM_PROBLEM:					return problem;
+         case PARAM_MUTATION_PROB:				return new Double(mutationProb);
+         case PARAM_CROSSOVER_PROB:				return new Double(crossoverProb);
+         case PARAM_LOCAL_SEARCH_PROB:			return new Double(localSearchProb);
+         case PARAM_TARGET_FITNESS:				return new Double(targetFitness);
+         case PARAM_GENERATION_NUMBER:			return new Integer(generationNumber);
+         case PARAM_SELECTED_CELL:				return selectedCell;	
+         case PARAM_GENERATION_LIMIT: 			return new Integer(generationLimit);
+         case PARAM_ALLELE_MUTATION_PROB:		return new Double(alleleMut);
+         case PARAM_MUTATIONS_PER_CHROMOSOME: 	return new Integer(this.mutationsPerChromosome);         
          // For the multi-objective case
-         case PARAM_SOLUTION_FRONT:			return paretoFront;
-         case PARAM_EVALUATION_LIMIT:		return new Integer(evaluationLimit);
-         case PARAM_UPPER_LIMIT:			return upperLimit;
-         case PARAM_LOWER_LIMIT:			return lowerLimit;
-         case PARAM_FEEDBACK:				return new Integer(numFeedbackSols);
+         case PARAM_SOLUTION_FRONT:				return paretoFront;
+         case PARAM_EVALUATION_LIMIT:			return new Integer(evaluationLimit);
+         case PARAM_UPPER_LIMIT:				return upperLimit;
+         case PARAM_LOWER_LIMIT:				return lowerLimit;
+         case PARAM_FEEDBACK:					return new Integer(numFeedbackSols);
          // For the multi-objective case
          // For the gui
-         case PARAM_DISPLAY:				return display;
-         case PARAM_DISPLAY2:				return display2;
-         case PARAM_DISPLAY_STEPS:			return displaySteps;
+         case PARAM_DISPLAY:					return display;
+         case PARAM_DISPLAY2:					return display2;
+         case PARAM_DISPLAY_STEPS:				return displaySteps;
          // For the gui
          // For the hierarchical model
-         case PARAM_HIERARCHY:				return hierarchy;
-         case PARAM_ASYNC_SWAP:				return asyncSwap;
-         case PARAM_SWAP_FREQ:				return new Integer(swapFreq);
-         case PARAM_SWAP_IF_STATIC:			return new Boolean(swapIfStatic);
-         case PARAM_MOVES_SWAP:				return new Integer(movesForSwapping);
-         case PARAM_SWAP_PROB:				return new Double(swapProb);
+         case PARAM_HIERARCHY:					return hierarchy;
+         case PARAM_ASYNC_SWAP:					return asyncSwap;
+         case PARAM_SWAP_FREQ:					return new Integer(swapFreq);
+         case PARAM_SWAP_IF_STATIC:				return new Boolean(swapIfStatic);
+         case PARAM_MOVES_SWAP:					return new Integer(movesForSwapping);
+         case PARAM_SWAP_PROB:					return new Double(swapProb);
          // For the hierarchical model
          // For the adaptive population
          case PARAM_POP_ADAPTATION:			return adaptation;
@@ -220,7 +224,8 @@ public abstract class EvolutionaryAlg
          case PARAM_ANISOTROPIC_ADAPTATION: return ANadaptation;
          case PARAM_MIGRATION_FREQUENCY:	return new Integer(migrationFreq);
          case PARAM_LOCAL_SEARCH_STEPS:		return new Integer(max_steps);
-         default: return null;
+         
+         default: 							return null;
       }
    }
 
@@ -275,6 +280,9 @@ public abstract class EvolutionaryAlg
          case PARAM_ALLELE_MUTATION_PROB:
             alleleMut = ((Double)param).doubleValue();
             break;
+         case PARAM_MUTATIONS_PER_CHROMOSOME:
+        	 this.mutationsPerChromosome = ((Integer)param).intValue();
+        	 break;
          // For the multi-objective case
          case PARAM_SOLUTION_FRONT:
          	paretoFront = (Archive)param;

@@ -33,13 +33,13 @@ public class GenGA extends EvolutionaryAlg
     Integer ind[] = new Integer[2]; // Used for avoiding that the same individual is selected twice in selection
 	Population auxPop;
 
-//	population.setPopSize(problem.getVariables()*2);  // A população será do tamanho do dobro do número de v 
 	auxPop = new Population(population.getPopSize());
 	
 	
     this.problem.reset(); // Set the number of evaluations to 0
 
-	//invoca o método eval(), implementado nas classes dos problemas, para todos os cromossomas da população
+	//	Invoca o método eval(), implementado nas classes dos problemas, para todos os cromossomas da população
+    //calculando, através de uma corrida do algoritmo construtivo para cada cromossoma, um fitness para cada cromossoma 
     this.problem.evaluatePopulation(population);
     
     
@@ -100,14 +100,17 @@ public class GenGA extends EvolutionaryAlg
 
 			// Second parent selection
 			oper = (Operator)operators.get("selection2");
+			
 			if (oper != null)
 		    {
 				ind[1] = (Integer)oper.execute(population.getIndividuals());
+				
 				while (ind[0].intValue() == ind[1].intValue())
 				{
 				    // It is not allowed the same parent to be selected twice
 				    ind[1] = (Integer)oper.execute(population.getIndividuals());
 				}
+				
 				iv[1] = (Individual)population.getIndividual(ind[1].intValue()).clone();
 		    }
 

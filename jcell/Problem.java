@@ -118,7 +118,7 @@ public abstract class Problem
    
    public Object evaluate(Individual ind)
    {
-      Object fit = eval(ind); // get the fitness value
+      Object fit = eval(ind); // calcular o valor de fitness ap—s uma corrida do algoritmo construtivo
       
       this.nEvals++; // increase number of evaluations
       ind.setFitness(fit); // set the fitness to the individual

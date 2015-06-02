@@ -35,6 +35,7 @@ public class CellularGA extends EvolutionaryAlg
    	boolean multiobjective = problem.numberOfObjectives() > 1;
    	
       double optimum; // Best fitness individual in the population
+	  double best = 0;
       Point neighPoints[]; // Individuals in the neighborhood 
       Operator oper;
       Individual iv[] = new Individual[2]; // Used for the recombination
@@ -43,6 +44,7 @@ public class CellularGA extends EvolutionaryAlg
       
       this.problem.reset(); // set evaluations to 0
       
+      //invoca o método eval(), implementado nas classes dos problemas, para todos os cromossomas da população
       this.problem.evaluatePopulation(population);
       
       generationNumber = 0;
@@ -70,10 +72,17 @@ public class CellularGA extends EvolutionaryAlg
   		lrSweep = new LineCenterLRSweep(population);
   		udSweep = new LineCenterUDSweep(population);
   	  }
-  	
+  	  
+  	  
       while ((problem.getNEvals() < evaluationLimit) && (generationNumber < generationLimit))
       {
+    	  
+    	  if(best < ((Double) statistic.getStat(SimpleStats.MAX_FIT_VALUE)).doubleValue())
+    		  best = ((Double) statistic.getStat(SimpleStats.MAX_FIT_VALUE)).doubleValue();
+    		  
+    	  
       	PopGrid auxPop = new PopGrid(population.getDimX(),population.getDimY());
+
          for (int k=0; k<population.getPopSize(); k++)
          {
         	// BREEDING LOOP:
@@ -88,16 +97,18 @@ public class CellularGA extends EvolutionaryAlg
 
 			// Second parent selection
 			oper = (Operator)operators.get("selection2");
+			
 			if (oper != null)
-			    {
+			{
 				neighPoints = neighborhood.getNeighbors(selectedCell);
 				population.getFromPoints(neighPoints,neighIndivs);
+				
 				do
 	               	ind[1] = (Integer)oper.execute(neighIndivs);
 	            while (ind[0].intValue() == ind[1].intValue());
 				
 				iv[1] = (Individual)neighIndivs[ind[1].intValue()].clone();
-			    }
+			}
             
             // Recombination
             oper = (Operator)operators.get("crossover");
@@ -113,11 +124,14 @@ public class CellularGA extends EvolutionaryAlg
 
             // Local search
             oper = (Operator)operators.get("local");
+            
             if (oper != null)
                if (r.nextDouble() < localSearchProb)
                   iv[0] = (Individual)oper.execute(iv[0]);
-               else problem.evaluate(iv[0]);
-            else problem.evaluate(iv[0]);
+               else 
+            	   problem.evaluate(iv[0]);
+            else 
+            	problem.evaluate(iv[0]);
             
             iv[1] = population.getIndividual(selectedCell);
             
@@ -132,6 +146,7 @@ public class CellularGA extends EvolutionaryAlg
             
             iv[0].setX(selectedCell.x);
 			iv[0].setY(selectedCell.y);
+			
 			if (synchronousUpdate)
 				auxPop.setIndividual(selectedCell,iv[0]);
 			else
@@ -144,7 +159,8 @@ public class CellularGA extends EvolutionaryAlg
 			}
          }
          
-         if (synchronousUpdate) population.copyPop(auxPop);
+         if (synchronousUpdate) 
+        	 population.copyPop(auxPop);
          
          // Synchronous hierarchy
          if ((getParam(CellularGA.PARAM_HIERARCHY) != null) && !((Boolean)(getParam(CellularGA.PARAM_ASYNC_SWAP))).booleanValue())
@@ -154,7 +170,11 @@ public class CellularGA extends EvolutionaryAlg
          	statistic.calculate(population);
  
          generationNumber++;
-         listener.generation(this);
+         
+         
+         if(Target.isBetter(((Double) statistic.getStat(SimpleStats.MAX_FIT_VALUE)).doubleValue(), best))
+        	 listener.generation(this);
+         
          if (!multiobjective)
          {
 	         if (Target.maximize)

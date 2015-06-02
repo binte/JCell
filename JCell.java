@@ -56,9 +56,9 @@ public class JCell implements GenerationListener
     
     public static void main (String args[]) throws Exception
     {
-    	if (args.length != 4)
+    	if (args.length != 5)
         {
-           System.out.println("Error. Try java JCell <ConfigFile> <DataFile> <GenerationLimit> <testFlag>");
+           System.out.println("Error. Try java JCell <ConfigFile> <DataFile> <GenerationLimit> <mutationsPerChromosome> <TestFlag>");
            System.exit(-1);
         }
     	
@@ -79,17 +79,30 @@ public class JCell implements GenerationListener
 		Problem prob = (Problem)ea.getParam(CellularGA.PARAM_PROBLEM);
 		
 		// se se tratar de uma execução de teste
-		if( Boolean.parseBoolean((args[3])) ) // activar a flag respetiva
-			prob.setTesting(Boolean.parseBoolean((args[3])));
+		if( Boolean.parseBoolean((args[4])) ) // activar a flag respetiva
+			prob.setTesting(Boolean.parseBoolean((args[4])));
 		else // se não se tratar de uma execução de teste
     		System.out.println(prob.toString());
+		
+		// definir o número de mutações a realizar por cromossoma
+		ea.setParam(CellularGA.PARAM_MUTATIONS_PER_CHROMOSOME, Integer.parseInt(args[3]));
+		
 		
 		Population popAux = (Population) ea.getParam(CellularGA.PARAM_POPULATION);
 		
 				
 		if(conf.getProperties().getProperty("Algorithm").equalsIgnoreCase("generational") && conf.getProportion()!=0)
 			popAux.setPopSize( (int) (prob.getVariables()*conf.getProportion()) );
-							
+		else
+			if(conf.getProperties().getProperty("Algorithm").equalsIgnoreCase("cellular") && conf.getProportion()!=0) {
+				
+				popAux.setPopSize( (int) (prob.getVariables()*conf.getProportion()* ((PopGrid)popAux).getDimX()) );
+				
+				((PopGrid)popAux).setDimension(((PopGrid)popAux).getDimX(), (int) (prob.getVariables()*conf.getProportion()) );
+				
+				((FixedRandomSweep)ea.getParam(CellularGA.PARAM_CELL_UPDATE)).setPermutationIndividual(popAux.getPopSize());
+			}
+		
 		// Set the Individual
 		String indiv = conf.getProperties().getProperty("Individual");
 
@@ -251,7 +264,7 @@ public class JCell implements GenerationListener
 	    	try{
 	    		out.write(line + "\n");
 	    		out.flush();
-	    	} 
+	    	}
 	    	catch (Exception e) { //Catch exception if any
 	    		  
 	    		System.err.println("Error: " + e.getMessage());

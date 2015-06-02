@@ -240,7 +240,6 @@ public class ReadConf {
 			
 			if ((begin == 0) && (alg.equalsIgnoreCase("cellular")))
 				throw new MissedPropertyException("The population must be supplied like (x, y) in the cellular case");
-
 			else if (alg.equalsIgnoreCase("distributed"))
 			{
 				int isl = (new Integer(islands)).intValue();
@@ -250,15 +249,27 @@ public class ReadConf {
 			else if (begin != 0 && !alg.equalsIgnoreCase("generational"))
 			{
 				end   = popSize.indexOf(",");
-				x = (new Integer(popSize.substring(begin,end).trim())).intValue();
+				x = (new Integer(popSize.substring(begin,end).trim()));
 				begin = end + 1;
-				end   = popSize.indexOf(")");
-				y = (new Integer(popSize.substring(begin,end).trim())).intValue();
+				
+				if((end = popSize.indexOf("]")) >= 0) {
+					
+					begin = popSize.indexOf("[") + 1;
+					
+					y = 10;
+					
+					this.proportion = (new Double(popSize.substring(begin,end).trim()));
+				}
+				else {
+					
+					end   = popSize.indexOf(")");
+					
+					y = (new Integer(popSize.substring(begin,end).trim()));					
+				}
 				
 				// Create the population
 				pop = new PopGrid(x,y);
 			}
-			
 			else if(alg.equalsIgnoreCase("steady-state"))
 			{
 				pop = new Population((new Integer(popSize)).intValue());
@@ -287,6 +298,7 @@ public class ReadConf {
 			String swapProb = swapProbDf;
 			String swapIfNoMoves = swapIfNoMovesDf;
 			String movesForSwapping = movesForSwappingDf;
+
 			if (hierarchyName == null)
 				useHierarchy = new Boolean("False");
 			else
@@ -350,13 +362,16 @@ public class ReadConf {
 				update = updateDf; // update won't be used. This is made only for avoiding null pointing errors
 			
 			String migrationFreq = properties.getProperty("MigrationFreq");//.toLowerCase();
+
 			if (migrationFreq == null)
 				migrationFreq = migrationFreqDf;
+
 			ea.setParam(EvolutionaryAlg.PARAM_MIGRATION_FREQUENCY, new Integer(migrationFreq));
 			
 			String updateLC = update.toLowerCase();
 			
 			boolean synchronousUpdate = synchronousUpdateDf; 
+
 			if ((update!=null) && updateLC.contains("asynchronous"))
 				synchronousUpdate = false;
 			
@@ -368,6 +383,7 @@ public class ReadConf {
 			
 			// Set the problem to solve
 			String prob = properties.getProperty("Problem");
+
 			if (prob == null)
 				throw new MissedPropertyException("Problem");
 						
@@ -489,7 +505,9 @@ public class ReadConf {
 							aux[j] = new Integer(BypassLinksClusters);
 						}
 					}
+					
 					problem = (Problem) cons[i].newInstance(aux); // Constructor called
+					
 					break;
 				}
 				else
@@ -570,6 +588,7 @@ public class ReadConf {
 			
 			// Set the Pareto parameters
 			String pareto = properties.getProperty("ArchiveManagement");
+
 			if ((pareto == null) && (problem.numberOfObjectives()>1))
 			{
 				writeLine("Archive management policy not provided. Default value: " + paretoDf);
@@ -596,15 +615,17 @@ public class ReadConf {
 			// Set the mutation probability
 			String mutValue = properties.getProperty("MutationProb");
 			Double mutation = new Double(mutationDf);
+
 			if (mutValue==null)
 				writeLine("Mutation probability not provided. Default value: " + mutationDf);
 			else
 				mutation = new Double(mutValue);
-			
-			
+
+
 			Boolean alleleMutation = false;
 			String allelelMutValue = properties.getProperty("AlleleMutationProb");
 			Double alleleMutationProb = 0.001;
+
 			if (allelelMutValue == null)
 				writeLine("Mutation probability not provided. Default value is one over the number of genes");
 			else
@@ -616,6 +637,7 @@ public class ReadConf {
 			// Set the crossover probability
 			Double crossover = new Double(crossoverDf);
 			String crossValue = properties.getProperty("CrossoverProb");
+
 			if (crossValue == null)
 				writeLine("Crossover probability not provided. Default value: " + crossoverDf);
 			else
@@ -636,17 +658,20 @@ public class ReadConf {
 			
 			// Set the selection policy for parent 1
 			String selectionP1 = properties.getProperty("SelectionParent1");
+
 			if (selectionP1 == null)
 			{
 				writeLine("Selection of first parent not provided. Default selection: " + selectionP1Df);
 				selectionP1 = selectionP1Df;
 			}
+
 			Operator sel1 = null;
 			c = Class.forName(selectionP1);
 			cons = c.getConstructors();
 			Random[] aux = new Random[1];
 			aux[0] = r;
 			l = cons.length;
+			
 			// Call the constructor. 
 			// Operator Constructors having more than one arguments are not allowed.
 			// Operator constructors with one argument are preferred with respect to those having no arguments
@@ -661,15 +686,18 @@ public class ReadConf {
 			
 			// Set the selection policy for parent 2
 			String selectionP2 = properties.getProperty("SelectionParent2");
+			
 			if (selectionP2 == null)
 			{
 				writeLine("Selection of second parent not provided. Default selection: " + selectionP2Df);
 				selectionP2 = selectionP2Df;
 			}
+			
 			Operator sel2 = null;
 			c = Class.forName(selectionP2);
 			cons = c.getConstructors();
 			l = cons.length;
+			
 			// Call the constructor. 
 			// Operator Constructors having more than one arguments are not allowed.
 			// Operator constructors with one argument are preferred with respect to those having no arguments
@@ -684,17 +712,21 @@ public class ReadConf {
 						
 			// Set the recombination operator
 			String recombName = properties.getProperty("Crossover");
+			
 			if (recombName == null)
 				throw new MissedPropertyException("Crossover");
+			
 			c = Class.forName(recombName);
 			Operator recomb = null;
 			cons = c.getConstructors();
+			
 			if (cons[0].getParameterTypes().length == 0) 
 			// if there is a constructor with no arguments
 				recomb = (Operator) c.newInstance();
 			else
 			{
 				l = cons.length;
+				
 				// Call the constructor. 
 				// Operator Constructors having more than one arguments are not allowed.
 				// Operator constructors with one argument are preferred with respect to those having no arguments
@@ -733,6 +765,7 @@ public class ReadConf {
 			// Special parameters for the recombination operators
 			// Set the pBias parameter (for the Ax recombination)
 			String pBias = properties.getProperty("pBiasAX");
+
 			if ((pBias == null) && (recombName.equalsIgnoreCase("AX")))
 				writeLine("pBias parameter not provided for AX. Default value: " + ((Ax)recomb).getpBias());
 			else if ((pBias != null) && (recombName.equalsIgnoreCase("AX")))
@@ -740,6 +773,7 @@ public class ReadConf {
 			
 			// Set the alpha parameter (for the BLXalpha recombination)
 			String alpha = properties.getProperty("AlphaBLX");
+
 			if ((alpha == null) && (recombName.equalsIgnoreCase("BLX")))
 				writeLine("alpha parameter not provided for BLX. Default value: " + ((BLXalpha)recomb).getAlpha());
 			else if ((alpha != null) && (recombName.equalsIgnoreCase("BLX")))
@@ -747,6 +781,7 @@ public class ReadConf {
 			
 			// Set the lambda parameter (for the FCBX recombination)
 			String lambda = properties.getProperty("LambdaFCBX");
+
 			if ((lambda == null) && (recombName.equalsIgnoreCase("FCBX")))
 				writeLine("lambda parameter not provided for FCBX. Default value: " + ((FCBX)recomb).getLambda());
 			else if ((lambda != null) && (recombName.equalsIgnoreCase("FCBX")))
@@ -754,6 +789,7 @@ public class ReadConf {
 			
 			// Set the alpha parameter (for the PBX recombination)
 			String alphaPBX = properties.getProperty("AlphaPBX");
+			
 			if ((alphaPBX == null) && (recombName.equalsIgnoreCase("PBX")))
 				writeLine("alpha parameter not provided for PBX. Default value: " + ((PBX)recomb).getAlpha());
 			else if ((alphaPBX != null) && (recombName.equalsIgnoreCase("PBX")))
@@ -762,10 +798,13 @@ public class ReadConf {
 			// Set the lambda and ro parameters (for the PNX recombination)
 			String lambdaPNX = properties.getProperty("LambdaPNX");
 			String roPNX = properties.getProperty("RoPNX");
+			
 			if ((lambdaPNX == null) && (recombName.equalsIgnoreCase("PNX")))
 				writeLine("lambda parameter not provided for PNX. Default value: " + ((PNX)recomb).getLambda());
+			
 			if ((roPNX == null) && (recombName.equalsIgnoreCase("PNX")))
 				writeLine("ro parameter not provided for PNX. Default value: " + ((PNX)recomb).getRo());
+			
 			if ((lambdaPNX != null) && (roPNX != null) && (recombName.equalsIgnoreCase("PNX")))
 			{
 				((PNX)recomb).setLambda(new Double(lambdaPNX).doubleValue());
@@ -774,6 +813,7 @@ public class ReadConf {
 			
 			// Set the pBias parameter (for the Px recombination)
 			String pBiasPX = properties.getProperty("pBiasPX");
+			
 			if ((pBiasPX == null) && (recombName.equalsIgnoreCase("Px")))
 				writeLine("pBias parameter not provided for Px. Default value: " + ((Px)recomb).getpBias());
 			else if ((pBiasPX != null) && (recombName.equalsIgnoreCase("Px")))
@@ -781,6 +821,7 @@ public class ReadConf {
 			
 			// Set the distributionIndex parameter (for the SBX recombination)
 			String distributionIndex = properties.getProperty("distributionIndexSBX");
+			
 			if ((distributionIndex == null) && (recombName.equalsIgnoreCase("SBX")))
 				writeLine("distributionIndex parameter not provided for SBX. Default value: " + ((SBX)recomb).getDistributionIndex());
 			else if ((distributionIndex != null) && (recombName.equalsIgnoreCase("SBX")))
@@ -789,11 +830,14 @@ public class ReadConf {
 			
 			// Set the mutation operator
 			String mutName = properties.getProperty("Mutation");
+
 			if (mutName == null)
 				throw new MissedPropertyException("Mutation");
 			c = Class.forName(mutName);
+
 			Operator mut = null;
 			cons = c.getConstructors();
+
 			if (cons[0].getParameterTypes().length == 2) 
 			// The constructor for every mutation needs 2 variables
 			{
@@ -806,6 +850,7 @@ public class ReadConf {
 			// Special parameters for the recombination operators
 			// Set the distributionIndex parameter (for the polynomial mutation)
 			String distributionIndexPM = properties.getProperty("distributionIndexPM");
+			
 			if ((distributionIndexPM == null) && (mutName.equalsIgnoreCase("polynomialMutation")))
 				writeLine("distributionIndex parameter not provided for PolynomialMutation. Default value: " + ((PolynomialMutation)mut).getDistributionIndex());
 			else if ((distributionIndexPM != null) && (mutName.equalsIgnoreCase("polynomialMutation")))
@@ -813,6 +858,7 @@ public class ReadConf {
 			
 			// Set the deviation parameter (for the Gaussian mutation)
 			String deviationGM = properties.getProperty("deviationGM");
+			
 			if ((deviationGM == null) && (mutName.equalsIgnoreCase("GaussianMutation")))
 				writeLine("deviation parameter not provided for GaussianMutation. Default value: " + ((GaussianMutation)mut).getDeviation());
 			else if ((deviationGM != null) && (mutName.equalsIgnoreCase("GaussianMutation")))
@@ -828,21 +874,25 @@ public class ReadConf {
 			
 			// Set the replacement policy
 			String replName = properties.getProperty("Replacement");
+			
 			if (replName == null)
 			{
 				writeLine("Replacement policy not provided. Default selection: " + replacementDf);
 				replName = replacementDf;
 			}
+			
 			c = Class.forName(replName);
 			Operator replacement = null;
 			replacement = (Operator) c.newInstance();
 			
 			String displayStepsName = properties.getProperty("DisplaySteps");
+			
 			if (displayStepsName == null)
 			{
 				writeLine("The display steps are not provided. Default value: " + displayStepsDf);
 				displayStepsName = displayStepsDf;
 			}
+			
 			Integer displaySteps = new Integer(displayStepsName);
 			
 			// Set parameters of CEA
@@ -855,14 +905,17 @@ public class ReadConf {
 			ea.setParam(CellularGA.PARAM_PROBLEM, problem);
 			ea.setParam(CellularGA.PARAM_EVALUATION_LIMIT, evaluationsLimit);
 			ea.setParam(CellularGA.PARAM_MUTATION_PROB, mutation);
+
 			if (alleleMutation)
 				ea.setParam(CellularGA.PARAM_ALLELE_MUTATION_PROB, new Double(alleleMutationProb)); // probability of allele mutation
 			else if (problem.getVariables() > 1)
 				ea.setParam(CellularGA.PARAM_ALLELE_MUTATION_PROB, new Double(1.0/(double)problem.getVariables())); // probability of allele mutation
 			else
 				ea.setParam(CellularGA.PARAM_ALLELE_MUTATION_PROB, new Double(0.5)); // probability of allele mutation
+
 			ea.setParam(CellularGA.PARAM_CROSSOVER_PROB, crossover);
 			ea.setParam(CellularGA.PARAM_TARGET_FITNESS, (Double) new Double(problem.getMaxFitness()));
+
 			// For the hierarchical algorithm
 			ea.setParam(CellularGA.PARAM_ASYNC_SWAP, new Boolean(asyncSwap));
 			ea.setParam(CellularGA.PARAM_SWAP_FREQ, new Integer(swapFreq));
@@ -925,6 +978,7 @@ public class ReadConf {
 			
 //			 Set whether the population will be displayed or not
 			String showDispl = properties.getProperty("ShowDisplay");
+			
 			if (showDispl == null)
 			{
 				writeLine("The population won't be displayed.");
@@ -932,6 +986,7 @@ public class ReadConf {
 			}
 			
 			Boolean display = new Boolean(showDispl);
+			
 			if (display.booleanValue())
 			{
 				if (!alg.equalsIgnoreCase("cellular"))

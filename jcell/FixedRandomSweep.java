@@ -27,6 +27,11 @@ public class FixedRandomSweep extends CellUpdate
       sweep.setRandomValues(r);
    }
    
+   public void setPermutationIndividual(int popSize) {
+	   
+	   this.sweep = new PermutationIndividual(popSize); 
+   }
+   
    public Point nextCell()
    {
       Point cell = pop.toGrid(sweep.getIntegerAllele(pos));
