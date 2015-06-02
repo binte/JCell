@@ -13,30 +13,35 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
 import java.util.Scanner;
+import java.util.StringTokenizer;
 
 import jcell.*; //Use jcell package
 
 public class TOP extends Problem
 {
-	private static final double maxFitness = 1; // Maximum Fitness Value
+	protected static final double maxFitness = 1; // Maximum Fitness Value
 	
-	private int F;  		// número de vértices
-	private int T;  		// número de viajantes (travellers)
-    private float deadline;	// tempo máximo por viagem
+	protected int F;  		// número de vértices
+	protected int T;  		// número de viajantes (travellers)
+    protected float deadline;	// tempo máximo por viagem
     
-    private ArrayList<Vertice> vertices;	// vector de vértices
-	private double matrix[][];				// matriz de distâncias
+    protected ArrayList<? extends Vertice> vertices;	// vector de vértices
+	protected double matrix[][];				// matriz de distâncias
 	
-	private int totalScore;	// soma dos pesos de todas as tarefas que passaram o filtro
-	private int collected;  // some dos prémios recolhidos 
-	private int iteration;  // iteração em que foi encontrado o melhor fitness
+	protected float totalScore;	// soma dos pesos de todas as tarefas que passaram o filtro
+	protected int collected;  // soma dos prémios recolhidos 
+	protected int iteration;  // iteração em que foi encontrado o melhor fitness
 	
-	private double bestFitness;
-	private ArrayList<Integer>[] bestTrip;
+	protected double bestFitness;
+	protected ArrayList<Integer>[] bestTrip;
+	
+	protected boolean matrixFile; 	 		// indica se a matriz deve ou não ser lida de ficheiro
+	protected String matrixFileName = null; // caso a variável matrixFile esteja accionada, esta variável irá conter o nome do ficheiro da matriz
     
 
     public TOP(String dataFile)
@@ -44,12 +49,70 @@ public class TOP extends Problem
     	super(dataFile);
 		super.maxFitness = maxFitness;
     	Target.maximize = true;
-    	    	    	
-    	try {
+    }
+    
+    
+    public int getT() {
+    	
+    	return this.T;
+    }
+    
+    public float getTotalScore() {
+    	
+    	return this.totalScore;
+    }
+    
+    public int getCollected() {
+    	
+    	return this.collected;
+    }
+    
+    public int getIteration() {
+    	
+    	return this.iteration;
+    }
+    
+    public ArrayList<Integer>[] getBestTrip() {
+    	
+    	return this.bestTrip;
+    }
+    
+    public boolean getMatrixFile() {
+    	
+    	return this.matrixFile;
+    }
+   
+    
+    public void setMatrixFile(boolean matrixFile) {
+    	
+    	this.matrixFile = matrixFile;
+    }
+    
+    public void setMatrixFileName(String matrixFileName) {
+    	
+    	this.matrixFileName = matrixFileName;
+    }
+    
+    public void setIteration(int iteration) {
+    	
+    	this.iteration = iteration;
+    }
+    
+    
+    /** 
+     * Inicializar as variáveis através da leitura do ficheiro de dados
+     */
+    public void init() {
+    	
+       	try {
         	BufferedReader reader = new BufferedReader(new FileReader(this.dataFile));
         	Scanner input = new Scanner(reader);
-
-        	this.F = Integer.parseInt(DataLoading.getParameter(input));
+        	
+        	String s = DataLoading.getParameter(input);
+        	s.trim();
+        	char firstChar = s.charAt(0);
+        	
+        	this.F = Integer.parseInt(s);
     		this.T = Integer.parseInt(DataLoading.getParameter(input));
     		this.deadline = Float.parseFloat(DataLoading.getParameter(input));
     		this.vertices = new ArrayList<Vertice>();
@@ -61,9 +124,15 @@ public class TOP extends Problem
 				this.totalScore += vertices.get(i).getScore();
 			
 			this.collected = 0;
+
 			
-			this.filter();
-    		this.buildMatrix(); // construir a matriz de distâncias
+			if(this.matrixFile)
+				this.readMatrix();  // ler a matriz de distâncias de ficheiro
+			else {
+				
+				this.filter();
+				this.buildMatrix(); // construir a matriz de distâncias
+			}
     		
     		input.close();
     		
@@ -92,36 +161,8 @@ public class TOP extends Problem
     		System.exit(-1);
     	}
     }
-    
-    
-    public int getTotalScore() {
-    	
-    	return this.totalScore;
-    }
-    
-    public int getCollected() {
-    	
-    	return this.collected;
-    }
-    
-    public int getIteration() {
-    	
-    	return this.iteration;
-    }
-    
-    public ArrayList<Integer>[] getBestTrip() {
-    	
-    	return this.bestTrip;
-    }
-    
-    
-    public void setIteration(int iteration) {
-    	
-    	this.iteration = iteration;
-    }
-    
-    
-    /* Filtrar os vértices que nunca serão tomados, ou seja, que não respeitam a seguinte restrição:
+ 
+    /** Filtrar os vértices que nunca serão tomados, ou seja, que não respeitam a seguinte restrição:
      * 
      * distância(origem -> vértice) + distância(vértice -> destino)  >  TMax
      *
@@ -129,31 +170,166 @@ public class TOP extends Problem
      */
     public void filter() {
     	
-    	int i, j;
+    	int i;
     	ArrayList<Integer> novo = new ArrayList<Integer>();
     	
     	// colocar os indíces dos vértices que não poderão ser tomados num novo vector
-    	for(i=1, j=0 ; i<=this.F-2 ; i++) {
+    	for(i=1 ; i<=this.F-2 ; i++) {
     		
     		if (  Math.sqrt( Math.pow((this.vertices.get(i).getX() - this.vertices.get(0).getX()), 2) + 
     					     Math.pow((this.vertices.get(i).getY() - this.vertices.get(0).getY()), 2) ) + 
     			  Math.sqrt( Math.pow((this.vertices.get(this.F-1).getX() - this.vertices.get(i).getX()), 2) + 
     						 Math.pow((this.vertices.get(this.F-1).getY() - this.vertices.get(i).getY()), 2) ) > this.deadline  )  {
     			
-    			novo.add(i);
-    			j++;			
+    			novo.add(i);		
     		}
     	}
     	
-    	for(i=0, j=0 ; i<novo.size() ; i++, j++)
-    		this.vertices.remove(novo.get(i).intValue() - j);
+    	for(i=0 ; i<novo.size() ; i++)
+    		this.vertices.remove(novo.get(i).intValue() - i);
 
     	// atualizar o número de vértices atingíveis do problema
-    	this.variables = this.vertices.size();    	
+    	this.variables = this.vertices.size(); 	
+    }
+    
+    /**
+     * Realiza a filtragem dos vértices inatingíveis duma instância, dada a sua matriz de distâncias 
+     * 
+     * @return ArrayList<Integer>
+     */
+    public ArrayList<Integer> filterWithMatrix() {
+    	
+    	int i, j = 0;
+    	BufferedReader reader;
+    	ArrayList<Integer> filtered = new ArrayList<Integer>();
+    	ArrayList<Double> line = new ArrayList<Double>(), column = new ArrayList<Double>();
+		
+		try {
+			reader = new BufferedReader(new FileReader(this.matrixFileName));
+	    	Scanner input = new Scanner(reader);
+	    	StringTokenizer strTok;
+	    	String tmp;
+			
+			tmp = input.nextLine();
+			
+			/* Inicializar a utilização do StringTokenizer */
+			strTok = new StringTokenizer(tmp, "	");
+
+			/* Guardar os valores da primeira linha temporariamente */
+			for(i=0 ; i < this.F ; i++)
+				line.add(Double.parseDouble(strTok.nextToken()));
+			
+			
+			/* Guardar os valores da última coluna */
+			column.add(line.get(i-1));
+			
+			for(i=1 ; i < this.F ; i++) {
+			
+				tmp = input.nextLine();
+				
+				/* Inicializar a utilização do StringTokenizer */
+				strTok = new StringTokenizer(tmp, "	");
+				
+				for(j=0 ; j < this.F - 1 ; j++)
+					strTok.nextToken();
+				
+				column.add(Double.parseDouble(strTok.nextToken()));
+			}
+		} catch (FileNotFoundException ex) {
+			
+    		System.err.println("Unable to open file: " + ex);
+    		ex.printStackTrace();
+    		
+    		System.exit(-1);
+		}
+			
+		/**
+		 *  Filtrar vértices inatingíveis 
+		 **/
+	    for(i=0 ; i<=this.F-2 ; i++) {
+	    		
+	    	if ( line.get(i) + column.get(i) > this.deadline )
+	    		filtered.add(i);
+	    }
+	    	
+	   	for(i=0 ; i<filtered.size() ; i++)
+	    	this.vertices.remove(filtered.get(i).intValue() - i);
+	
+	    // atualizar o número de vértices atingíveis do problema
+	    this.variables = this.vertices.size();
+
+    	return filtered;
+    }
+    
+    /**
+     * Ler a matriz de distâncias de ficheiro
+     */
+    public void readMatrix() {
+    	
+    	int i, j = 0;
+    	BufferedReader reader;
+    	ArrayList<Integer> filtered = filterWithMatrix();
+    	
+    	
+		try {
+			reader = new BufferedReader(new FileReader(matrixFileName));	
+	    	Scanner input = new Scanner(reader);
+	    	StringTokenizer strTok;
+	    	String tmp = new String();
+			
+			
+			/* Inicializar a utilização do StringTokenizer */
+			strTok = new StringTokenizer(tmp, "	");
+			
+	
+	    	/**
+	    	 * Preencher a matriz de distâncias
+	    	 */
+	    	
+	    	//alocar espaço para a matriz
+	    	this.matrix = new double[this.variables][this.variables];	
+
+			
+			int ii=0, jj;
+			
+			for(i=0 ; i < this.F ; i++) {  // iterar as linhas
+	    
+				tmp = input.nextLine();
+				
+				/* Inicializar a utilização do StringTokenizer */
+				strTok = new StringTokenizer(tmp, "	");
+				
+				/* se a linha que se encontra a ser iterada não estiver contida nos vértices filtrados */
+				if( !filtered.contains(i) ) {
+					
+					jj=0;
+					
+					for(j=0 ; j < this.F ; j++) {  // iterar as colunas
+						
+						/* Se a coluna que se encontra a ser iterada estiver contida nos vértices filtrados */
+						if( filtered.contains(j) ) {
+							jj++; // incrementar o número de colunas filtradas na linha que se encontra a ser iterada
+							Double.parseDouble(strTok.nextToken()); // ignorar o token seguinte, por corresponder a um vértice filtrado
+						}
+						else // Se o vértice não tiver sido filtrado
+							this.matrix[i-ii][j-jj] = round(Double.parseDouble(strTok.nextToken()), 2);  // Guardar a distância arredondada e truncada
+		    		}
+				}
+				else // caso contrário, incrementar o número de linhas filtradas
+					ii++;
+			}
+			
+		} catch (FileNotFoundException ex) {
+			
+    		System.err.println("Unable to open file: " + ex);
+    		ex.printStackTrace();
+    		
+    		System.exit(-1);
+		}
     }
 
 
-    /* Construir a matriz de distâncias sem repetir dados. Exemplos:
+    /** Construir a matriz de distâncias com repetição de dados. Exemplos:
      * 
      * O trajecto 4->7 é o mesmo que o trajecto 7->4
      * O trajecto 5->6 é mesmo que o trajecto 6->5
@@ -174,10 +350,14 @@ public class TOP extends Problem
     	
     	for(i=0 ; i<this.variables ; i++){
     				
-    		for(j=i+1 ; j<this.variables ; j++) {
-    							
-    			matrix[i][j] = Math.sqrt( Math.pow((this.vertices.get(j).getX() - this.vertices.get(i).getX()), 2) + 
-    									  Math.pow((this.vertices.get(j).getY() - this.vertices.get(i).getY()), 2) );
+    		for(j=0 ; j<this.variables ; j++) {
+    			
+    			/* Calcular a distância entre os vértices */
+    			double value = Math.sqrt( Math.pow((this.vertices.get(j).getX() - this.vertices.get(i).getX()), 2) + 
+					  	   				  Math.pow((this.vertices.get(j).getY() - this.vertices.get(i).getY()), 2) );
+    			
+    			/* Guardar a distância arredondada e truncada */
+    			this.matrix[i][j] = round(value, 2);
     		}
     	}
     }
@@ -187,7 +367,7 @@ public class TOP extends Problem
     	
 //System.out.println("dist entre " + this.vertices.get(i).getID() + " e " + this.vertices.get(j).getID() + ": " + ((i>j) ? this.matrix[j][i] : this.matrix[i][j]));
     	
-    	return ((i>j) ? this.matrix[j][i] : this.matrix[i][j]);
+    	return this.matrix[j][i];
     }
 
     public Object eval(Individual ind)
@@ -237,7 +417,7 @@ public class TOP extends Problem
 				// inicializar a variável que irá conter o menor valor dos genes do cromossoma
 				min = (this.variables >= 10 ? this.variables + 1 : 10);
 				
-				// Percorrer os genes do cromossoma
+				// Percorrer os genes do cromossoma de forma a obter uma lista com os índices dos genes de valor máximo
 				for (int i = 1; i < this.variables - 1; i++) {
 					
 					/* se o gene que se encontra a ser processado tiver prioridade igual ou superior à máxima prioridade encontrada,
@@ -455,7 +635,7 @@ this.pressEnterToContinue();
 				
 				for(int i=0 ; i<this.T ; i++) {
 	
-					System.out.println("-------------- VIAGEM " + i + " || time: " + times.get(i) +" ---------------");
+					System.out.println("-------------- VIAGEM " + i + " || time: " + round(times.get(i), 2) +" ---------------");
 					
 					for (int h=0 ; h < this.bestTrip[i].size() ; h++)
 						System.out.println("indice " + h + ": " + this.vertices.get(this.bestTrip[i].get(h)).getID());
@@ -486,6 +666,18 @@ this.pressEnterToContinue();
 				full = false;
 		
 		return full;
+	}
+	
+	/* Arredonda um double a um dado número de casas decimais */
+	public double round(double value, int n) {
+		
+		BigDecimal bd = new BigDecimal(value);
+
+		/* Truncar o valor */
+		bd = bd.setScale(n, BigDecimal.ROUND_HALF_UP);
+
+		/* Retornar o valor */
+		return bd.doubleValue();
 	}
 	
 	/* Retorna a nova distância da viagem recebida (com o novo vértice numa dada posição) */
@@ -557,12 +749,8 @@ this.pressEnterToContinue();
     		//imprimir o número da linha que vai ser imprimida
     		sb.append(this.vertices.get(i).getID() + "	");
     		
-    		//imprimir tabs antes de começar a imprimir os valores da linha
-    		for(int k=0 ; k<=i ; k++)
-    			sb.append("	");
-
     		//imprimir os valores da linha truncados (e arredondados) a 4 dígitos
-    		for(j=i+1 ; j<this.variables ; j++)			
+    		for(j=0 ; j<this.variables ; j++)			
     			sb.append(matrix[i][j] + "	");
 
     		sb.append("\n");
@@ -571,9 +759,8 @@ this.pressEnterToContinue();
     	return sb.toString();
     }
     
-
     
-    private static void pressEnterToContinue() {
+    protected void pressEnterToContinue() {
     	
         System.out.println("Press ENTER to continue...");
         

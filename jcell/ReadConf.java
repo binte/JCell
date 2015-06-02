@@ -45,6 +45,11 @@ public class ReadConf {
 	protected Random r;
 	protected Boolean verbose = new Boolean(true);
 	protected Double proportion;
+	protected boolean modeFlag = false;  // se for alterada para true, o formato da população que se encontra a ser utilizado é o de sqrt(V)
+	
+	/* Variáveis utilizadas somente no problema TOP-TW */
+	private int nVehicles;
+	private float deadline;
 	
 	private final static int evaluationsLimitDf		= 1000000;
 	private final static String popSizeDf			= "(10, 10)";
@@ -121,17 +126,23 @@ public class ReadConf {
 	}
 	
 	
+	public Boolean getModeFlag() {
+		
+		return this.modeFlag;
+	}
+	
 	public Double getProportion() {
 		
 		return this.proportion;
 	}
 	
 
-	public ReadConf(String filename, String dataFile, Random r) {
+	public ReadConf(String filename, String dataFile, int nVehicles, Random r) {
 		
 		super();
 		this.filename = filename;
 		this.dataFile = dataFile;
+		this.nVehicles = nVehicles;
 		this.r = r;
 		this.properties = new StoreProperties();
 		this.proportion = 0.0;
@@ -254,11 +265,12 @@ public class ReadConf {
 				
 				end   = popSize.indexOf(",");
 				
-				if(end < 0) {
+				if(end < 0) {  // se a população estiver no formato sqrt(X)
 					
 					begin = popSize.indexOf("(") + 1;
 					end = popSize.indexOf(")");
 					
+					this.modeFlag = true;
 					this.proportion = (new Double(popSize.substring(begin, end).trim()));
 				}
 				else {
@@ -354,6 +366,7 @@ public class ReadConf {
 						writeLine("Force swap for too static individuals parameter not provided. Default value: " + swapIfNoMovesDf);
 						swapIfNoMoves = swapIfNoMovesDf;
 					}
+					
 					if (new Boolean(swapIfNoMoves).booleanValue())
 					{
 						movesForSwapping = properties.getProperty("MovesForSwapping");
@@ -385,7 +398,7 @@ public class ReadConf {
 			
 			String updateLC = update.toLowerCase();
 			
-			boolean synchronousUpdate = synchronousUpdateDf; 
+			boolean synchronousUpdate = this.synchronousUpdateDf; 
 
 			if ((update!=null) && updateLC.contains("asynchronous"))
 				synchronousUpdate = false;
@@ -550,7 +563,22 @@ public class ReadConf {
 							String instance = this.dataFile;
 							String[] aux = new String[1];
 							aux[0] = (String)instance;
+							
 							problem = (Problem) cons[i].newInstance(aux); // Constructor called
+							
+							if(cons[i].getName().startsWith("problems.Combinatorial.TOP")) {
+
+								((problems.Combinatorial.TOP) problem).setMatrixFile(Boolean.parseBoolean(properties.getProperty("matrixFile")));
+								
+								if( ((problems.Combinatorial.TOP) problem).getMatrixFile() )
+									((problems.Combinatorial.TOP) problem).setMatrixFileName(properties.getProperty("matrixFileName"));
+									
+								if(cons[i].getName().equals("problems.Combinatorial.TOP_TW"))
+									((problems.Combinatorial.TOP_TW) problem).setT(this.nVehicles);
+								
+								((problems.Combinatorial.TOP) problem).init();
+							}
+							
 							break;
 						}
 				}
@@ -1116,5 +1144,5 @@ public class ReadConf {
 		}
 		
 		return ea;
-	}
+	}	
 }

@@ -43,7 +43,7 @@ public class TopMutation implements Operator
     }
 	
 	// Parameter Individual, returns Individual
-	public Object execute(Object o, Point p)  
+	public Object execute(Object o, Point p) 
 	{
 		TopIndividual ind = (TopIndividual) o;
 		int len = ind.getLength(); //Length of individual

@@ -2,10 +2,10 @@ package jcell;
 
 public class Vertice {
 	
-	private int id;		// id do vértice, relativo ao seu número original
-	private float x;  	// abcissa
-	private float y;	// ordenada
-	private int score;	// pontuação obtida pela passagem neste vértice
+	protected int id;		// id do vértice, relativo ao seu número original
+	protected float x;  	// abcissa
+	protected float y;	// ordenada
+	protected float score;	// pontuação obtida pela passagem neste vértice
 	
 	
 	public Vertice() {
@@ -16,7 +16,7 @@ public class Vertice {
 		this.score 	= Integer.MIN_VALUE;
 	}
 
-	public Vertice(int id, float x, float y, int score) {
+	public Vertice(int id, float x, float y, float score) {
 		
 		this.id		= id;
 		this.x		= x;
@@ -43,7 +43,7 @@ public class Vertice {
 		this.y = y;
 	}
 
-	public void setScore(int score) {
+	public void setScore(float score) {
 		
 		this.score = score;
 	}
@@ -67,7 +67,7 @@ public class Vertice {
 		return this.y;
 	}
 
-	public int getScore() {
+	public float getScore() {
 		
 		return this.score;
 	}

@@ -34,36 +34,37 @@ public class CellularGA extends EvolutionaryAlg
 	   // Are we executing a Multi-Target Problem?
 	   boolean multiobjective = problem.numberOfObjectives() > 1;
    	
-      double optimum; // Best fitness individual in the population
-	  double best = 0;
-      Point neighPoints[]; // Individuals in the neighborhood 
-      Operator oper;
-      Individual iv[] = new Individual[2]; // Used for the recombination
-	  Integer ind[] = new Integer[2];      // Used for avoiding selecting twice the same individual as parent
-      Individual neighIndivs[] = new Individual[neighborhood.getNeighSize()];
+	   double optimum; // Best fitness individual in the population
+	   double best = 0;
+	   Point neighPoints[]; // Individuals in the neighborhood 
+	   Operator oper;
+	   Individual iv[] = new Individual[2]; // Used for the recombination
+	   Integer ind[] = new Integer[2];      // Used for avoiding selecting twice the same individual as parent
+	   Individual neighIndivs[] = new Individual[neighborhood.getNeighSize()];
       
-      this.problem.reset(); // set evaluations to 0
+	   this.problem.reset(); // set evaluations to 0
       
-      //invoca o mŽtodo eval(), implementado nas classes dos problemas, para todos os cromossomas da popula‹o
-      this.problem.evaluatePopulation(population);
+	   //invoca o mŽtodo eval(), implementado nas classes dos problemas, para todos os cromossomas da popula‹o
+	   this.problem.evaluatePopulation(population);
       
-      generationNumber = 0;
+	   generationNumber = 0;
       
-      if (synchronousUpdate)
-      	cellUpdate = new LineSweep(population);
-      if (multiobjective)
-      	paretoFront.initialize(population);
-      else
-      {
-      	statistic.calculate(population);  // Calcular algumas estat’sticas sobre a popula‹o
+	   if (synchronousUpdate)
+		   cellUpdate = new LineSweep(population);
       
-      	if (Target.maximize)
-      		optimum = ((Double)statistic.getStat(SimpleStats.MAX_FIT_VALUE)).doubleValue();
-      	else
-      		optimum = ((Double)statistic.getStat(SimpleStats.MIN_FIT_VALUE)).doubleValue();
+	   if (multiobjective)
+		   paretoFront.initialize(population);
+	   else
+	   {
+		   statistic.calculate(population);  // Calcular algumas estat’sticas sobre a popula‹o
+      
+		   if (Target.maximize)
+			   optimum = ((Double)statistic.getStat(SimpleStats.MAX_FIT_VALUE)).doubleValue();
+		   else
+			   optimum = ((Double)statistic.getStat(SimpleStats.MIN_FIT_VALUE)).doubleValue();
       	
-      	if (Target.isBetterOrEqual(optimum, targetFitness))
-      		return; // stop if we find the best solution
+		   if (Target.isBetterOrEqual(optimum, this.targetFitness))
+			   return; // stop if we find the best solution
       }
       
       listener.generation(this);
@@ -130,7 +131,7 @@ public class CellularGA extends EvolutionaryAlg
                   iv[0] = (Individual)oper.execute(iv[0]);
                else 
             	   problem.evaluate(iv[0]);
-            else 
+            else
             	problem.evaluate(iv[0]);
             
             iv[1] = population.getIndividual(selectedCell);
@@ -181,7 +182,7 @@ public class CellularGA extends EvolutionaryAlg
 	         if (Target.maximize)
 	         	optimum = ((Double)statistic.getStat(SimpleStats.MAX_FIT_VALUE)).doubleValue();
 	         else optimum = ((Double)statistic.getStat(SimpleStats.MIN_FIT_VALUE)).doubleValue();
-	         if (Target.isBetterOrEqual(optimum, targetFitness))
+	         if (Target.isBetterOrEqual(optimum, this.targetFitness))
 	            return; // Stop if we find the best solution
          }
       }
@@ -313,7 +314,6 @@ public class CellularGA extends EvolutionaryAlg
 				 
 	            //Swap operation
 
-				 
 				 //only if the two cells are actually adjacent (horizontally or vertically)
 				 if ((((selectedCell.y == nextCell.y) && (Math.abs(selectedCell.x - nextCell.x) == 1)) ||
 						 ((selectedCell.x == nextCell.x) && (Math.abs(selectedCell.y - nextCell.y) == 1)))) {
@@ -324,7 +324,7 @@ public class CellularGA extends EvolutionaryAlg
 					 if ((swapIfStatic) && (iv[1].getNoMoveCount() > movesForSwapping))
  						 performSwap = true;
 					 
-					 if (performSwap) {				 
+					 if (performSwap) {
 			            Operator oper = (Operator)operators.get("swap");
 			            iv = (Individual[]) oper.execute(iv);
 						statistic.recordCharacteristic(new Integer(ComplexStats.NR_SWAPS));
@@ -357,6 +357,4 @@ public class CellularGA extends EvolutionaryAlg
 			 }
 		 }
    }
-
-
 }

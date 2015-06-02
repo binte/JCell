@@ -25,6 +25,7 @@ import adaptiveCGA.*;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Random;
 import java.util.Date;
 
@@ -57,17 +58,22 @@ public class JCell implements GenerationListener
     public static void main (String args[]) throws Exception
     {
 
-/*Utilizar este código comentado caso seja passado o número de mutações a realizar por cromossoma por parâmetro */     	
+    	int nVehicles = 0;
+    	
+/*Utilizar este código comentado (tem de ser adaptado à inclusão do TOP_TW no JCell) caso seja passado o número de mutações a realizar por cromossoma por parâmetro */     	
 /*    	if (args.length != 5)
         {
            System.out.println("Error. Try java JCell <ConfigFile> <DataFile> <GenerationLimit> <TestFlag> <mutationsPerChromosome>");
            System.exit(-1);
         }
 */
-    	
-    	if (args.length != 4)
+
+    	if (args.length != 4 && args.length != 5)
         {
-           System.out.println("Error. Try java JCell <ConfigFile> <DataFile> <GenerationLimit> <TestFlag>");
+           System.out.println("Error. Try:");
+           System.out.println("1: java JCell <ConfigFile> <DataFile> <GenerationLimit> <TestFlag>");
+           System.out.println("2: java JCell <ConfigFile> <DataFile> <GenerationLimit> <TestFlag> <nVehicles> (TOP-TW)");
+           
            System.exit(-1);
         }
     	
@@ -79,13 +85,13 @@ public class JCell implements GenerationListener
 	
 		JCell sel = new JCell();
 		
-		// Read the configuration file
-		ReadConf conf = new ReadConf(args[0], args[1], r);
+		if(args.length == 5)
+			nVehicles = Integer.parseInt(args[4]);
 		
-		// Create and initialize ea with the parameters of the configuration
-		//EvolutionaryAlg ea = conf.getParameters();
+		ReadConf conf = new ReadConf(args[0], args[1], nVehicles, r);
+		
 		ea = conf.getParameters(args[1], Integer.parseInt(args[2]));
-
+		
 		Problem prob = (Problem)ea.getParam(CellularGA.PARAM_PROBLEM);
 		
 		// se se tratar de uma execução de teste
@@ -102,16 +108,27 @@ public class JCell implements GenerationListener
 		
 		Population popAux = (Population) ea.getParam(CellularGA.PARAM_POPULATION);
 		
-				
+		
 		if(conf.getProperties().getProperty("Algorithm").equalsIgnoreCase("generational") && conf.getProportion()!=0)
 			popAux.setPopSize( (int) (prob.getVariables()*conf.getProportion()) );
 		else
 			if(conf.getProperties().getProperty("Algorithm").equalsIgnoreCase("cellular") && conf.getProportion()!=0) {
 
-				int aux = (int) Math.round( (Math.sqrt(prob.getVariables() * conf.getProportion())) );
+				int aux;
 				
-				((PopGrid)popAux).setDimension(aux, aux);
-				popAux.setPopSize(aux*aux);
+				if(conf.getModeFlag()) {  // se a população estiver no formato sqrt(V)
+					
+					aux = (int) Math.round( (Math.sqrt(prob.getVariables() * conf.getProportion())) );
+					
+					((PopGrid)popAux).setDimension(aux, aux);
+					popAux.setPopSize(aux*aux);
+				}
+				else {
+					aux = (int) Math.round(prob.getVariables() * conf.getProportion());
+					
+					((PopGrid)popAux).setDimension(((PopGrid)popAux).getDimX(), aux);
+					popAux.setPopSize(((PopGrid)popAux).getDimX() * aux);
+				}
 				
 				((FixedRandomSweep)ea.getParam(CellularGA.PARAM_CELL_UPDATE)).setPermutationIndividual(popAux.getPopSize());
 			}
@@ -131,7 +148,6 @@ public class JCell implements GenerationListener
 		individual.setNumberOfFuncts(prob.numberOfObjectives());
 	
 		popAux.setTopPop(individual, prob.getVariables()); // initialization of the initial population
-
 		
 		ea.setParam(CellularGA.PARAM_POPULATION, popAux);
 		
@@ -139,7 +155,7 @@ public class JCell implements GenerationListener
 		longitCrom = prob.getVariables();
 		numberOfFuncts = prob.numberOfObjectives();
 		
-		ea.setParam(CellularGA.PARAM_LISTENER,sel);
+		ea.setParam(CellularGA.PARAM_LISTENER, sel);
 		ea.setParam(CellularGA.PARAM_FEEDBACK, new Integer(4));
 		
 		int displaySteps = ((Integer)ea.getParam(CellularGA.PARAM_DISPLAY_STEPS)).intValue();
@@ -215,13 +231,13 @@ public class JCell implements GenerationListener
 		{
 			Double best = null;
 			int contig = 0;
+			
 			if (Target.maximize)
 				best = (Double) ((Statistic) ea.getParam(CellularGA.PARAM_STATISTIC)).getStat(SimpleStats.MAX_FIT_VALUE);
 			else 
 				best = (Double) ((Statistic) ea.getParam(CellularGA.PARAM_STATISTIC)).getStat(SimpleStats.MIN_FIT_VALUE);
 			int evals = ((Problem) (ea.getParam(CellularGA.PARAM_PROBLEM))).getNEvals();
 		    // Writes: best found solution, number of generations, elapsed time (mseconds)
-			
 			
 			if(prob.getClass().getName().equalsIgnoreCase("problems.Combinatorial.DNAFragmentAssembling"))
 			{
@@ -244,7 +260,6 @@ public class JCell implements GenerationListener
 				best = new Double(sat.evalCount(bestInd));
 			}
 			
-System.out.print("Execuções do algoritmo construtivo: " + evals + ".");
 			
 			if (((Boolean)ea.getParam(EvolutionaryAlg.PARAM_VERBOSE)).booleanValue())
 				System.out.println("Solution: Best  Generations  Evaluations  Time (ms)  Problem");
@@ -253,23 +268,43 @@ System.out.print("Execuções do algoritmo construtivo: " + evals + ".");
 			{
 				System.out.println(best + " " + contig + " " + (Integer) ea.getParam(CellularGA.PARAM_GENERATION_NUMBER)+" "+ evals +" "+(fin-inicio) + " "
 						+ ((Problem) ea.getParam(CellularGA.PARAM_PROBLEM)).getClass().getName());
+				
 				// Get the best Individual
 				int pos = ((Integer)((Statistic)ea.getParam(EvolutionaryAlg.PARAM_STATISTIC)).getStat(SimpleStats.MAX_FIT_POS)).intValue();
+				
 				PermutationIndividual bestInd = (PermutationIndividual) ((Population) ea.getParam(EvolutionaryAlg.PARAM_POPULATION)).getIndividual(pos);
+				
 				int len = bestInd.getLength();
+				
 				for (int i=0; i<len; i++)
-				{
 					System.out.print(bestInd.getIntegerAllele(i) + " ");
-				}
+				
 				System.out.println();
 			}
 			else
 				if (!prob.testing()) // se não estiver a ser executada uma instância de teste
-					System.out.println(best + " " + (Integer) ea.getParam(CellularGA.PARAM_GENERATION_NUMBER)+" "+ evals +" "+(fin-inicio) + " " 
+					System.out.println(best + " " + (Integer) ea.getParam(CellularGA.PARAM_GENERATION_NUMBER) + " " + evals + " " + (fin-inicio) + " " 
 						+ ((Problem) ea.getParam(CellularGA.PARAM_PROBLEM)).getClass().getName());
 			
-			if( prob.testing() & prob.getClass().getName().equalsIgnoreCase("problems.Combinatorial.TOP"))
-				System.out.format("%d;%d", ((problems.Combinatorial.TOP)prob).getCollected(), ((problems.Combinatorial.TOP)prob).getIteration());
+			if( prob.testing() & prob.getClass().getName().startsWith("problems.Combinatorial.TOP")) {
+				System.out.format("%d;%d; ", ((problems.Combinatorial.TOP)prob).getCollected(), ((problems.Combinatorial.TOP)prob).getIteration());
+			
+				int nVertices = 0;
+				ArrayList<Integer>[] bestTrip = ((problems.Combinatorial.TOP)prob).getBestTrip();
+				
+				for(int i=0 ; i < ((problems.Combinatorial.TOP)prob).getT() ; i++)
+					nVertices += bestTrip[i].size();
+				
+				System.out.print("#" + nVertices + "#");
+				
+				for(int i=0 ; i < ((problems.Combinatorial.TOP)prob).getT() ; i++) {
+				
+					for (int h=0 ; h < bestTrip[i].size() ; h++)
+						System.out.print(" " + bestTrip[i].get(h));
+					
+					System.out.print(" #");
+				}
+			}
 		}
     }
     
@@ -303,7 +338,7 @@ System.out.print("Execuções do algoritmo construtivo: " + evals + ".");
 			Problem prob = (Problem)ea.getParam(EvolutionaryAlg.PARAM_PROBLEM);
 			
 			if (prob.numberOfObjectives() == 1) {	
-				if( prob.getClass().getName().equals("problems.Combinatorial.TOP") ) {
+				if( prob.getClass().getName().startsWith("problems.Combinatorial.TOP") ) {
 				
 					((problems.Combinatorial.TOP)prob).setIteration((Integer) ea.getParam(CellularGA.PARAM_GENERATION_NUMBER));
 					
