@@ -40,7 +40,7 @@ public class TopMutation implements Operator
 				ind.mutate(r,i, lastWeight); //Mutate gene i
       
       return ind;
-   }
+    }
 	
 	// Parameter Individual, returns Individual
 	public Object execute(Object o, Point p)  

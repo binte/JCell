@@ -8,10 +8,6 @@
 
 package genEA;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.Random;
 
 import jcell.*;
@@ -41,7 +37,7 @@ public class GenGA extends EvolutionaryAlg
 
     problem.reset(); // Set the number of evaluations to 0
 
-	//invoca o método eval() para todos os cromossomas da população
+	//invoca o método eval(), implementado nas classes dos problemas, para todos os cromossomas da população
     problem.evaluatePopulation(population);
 
     
@@ -63,7 +59,7 @@ public class GenGA extends EvolutionaryAlg
 	else // if the problem is not multiobjective
 	{
     
-		// Compute some statistic measures from the population
+      // Compute some statistic measures from the population
       statistic.calculate(population);
     
 	  if (Target.maximize) // if it is a maximization problem
@@ -97,7 +93,6 @@ public class GenGA extends EvolutionaryAlg
             // First parent selection
 			oper = (Operator) operators.get("selection1");
 			ind[0] = (Integer) oper.execute(population.getIndividuals());
-			
 			iv[0] = (Individual) population.getIndividual(ind[0].intValue()).clone();
 
 			// Second parent selection
@@ -112,7 +107,7 @@ public class GenGA extends EvolutionaryAlg
 				}
 				iv[1] = (Individual)population.getIndividual(ind[1].intValue()).clone();
 		    }
-            
+
             // Recombination
             oper = (Operator)operators.get("crossover");
             if (oper != null)
@@ -140,7 +135,7 @@ public class GenGA extends EvolutionaryAlg
 
             // if we are in the multiobjective case, insert the new solution into the archive
             if (multiobjective) paretoFront.Insert((Individual)iv[0].clone());
-         }       
+         }      
          
          // Replace the current population by the new one
          population.copyPop(auxPop);
@@ -168,8 +163,6 @@ public class GenGA extends EvolutionaryAlg
      	   			  best = i;
      	      }
          }
-         
-
          
          generationNumber++;
          // listener is a class for monitoring the search, if needed

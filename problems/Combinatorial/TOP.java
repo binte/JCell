@@ -44,7 +44,7 @@ public class TOP extends Problem
     	Target.maximize = true;
     	    	    	
     	try {
-        	BufferedReader reader = new BufferedReader(new FileReader("p1.4.r.txt"));
+        	BufferedReader reader = new BufferedReader(new FileReader("dados.txt"));
         	Scanner input = new Scanner(reader);
 
         	this.F = Integer.parseInt(DataLoading.getParameter(input));
@@ -162,7 +162,7 @@ System.out.println(this.toString());
     /* Retorna a distância entre dois vértices cujos índices foram recebidos */
     public double getDistance(int i, int j) {
     	
-    	//System.out.println("dist entre " + this.vertices.get(i).getID() + " e " + this.vertices.get(j).getID() + ": " + ((i>j) ? this.matrix[j][i] : this.matrix[i][j]));
+//System.out.println("dist entre " + this.vertices.get(i).getID() + " e " + this.vertices.get(j).getID() + ": " + ((i>j) ? this.matrix[j][i] : this.matrix[i][j]));
     	
     	return ((i>j) ? this.matrix[j][i] : this.matrix[i][j]);
     }
@@ -171,173 +171,234 @@ System.out.println(this.toString());
     {
 		// viagem -> array auxiliar que irá conter as viagens que serão construídas para cada viajante num dado cromossoma
 		// viagens -> array auxiliar que irá conter todos os vértices "ocupados" num dado instante num dado cromossoma
+    	// viagens_aux -> array auxiliar que irá conter cada viagem num arrayList distinto
 		// maxValues -> array auxiliar que irá ser utilizado para guardar os índices dos genes de maior prioridade dum cromossoma
 		// auxBlackList -> Lista auxiliar que irá conter os índices dos genes de maior prioridade que não podem ser tomados
 		// blackList -> Lista auxiliar que irá conter os índices dos genes descartados ao longo duma viagem
+    	// times -> Lista que contém os tempos atuais de todas as viagens, incluindo a chegada ao destino
     	// fl -> flag utilizada para assinalar a escolha dum gene
-    	// flag -> flag utilizada para saber se o tempo máximo da viagem foi atingido
-		// counter -> contador para o #posições que é necessário ignorar dos sucessivos arrays maxValues, por estarem na blacklist
-    	// size -> contador para o número de genes escolhidos nas viagens de todos os viajantes
+    	// flag -> flag utilizada para saber se continua a ser possível inserir vértices nas viagens
+    	// counter -> contador para o #posições que é necessário ignorar dos sucessivos arrays maxValues, por estarem na blacklist
     	
-    	ArrayList<Integer>[] viagens_aux = new ArrayList[this.T];  	
+    	ArrayList<Integer>[] viagens_aux = new ArrayList[this.T];
     	ArrayList<Integer> maxValues = new ArrayList<Integer>(), viagens = new ArrayList<Integer>(), blackList = new ArrayList<Integer>(), auxBlackList = new ArrayList<Integer>();
+    	ArrayList<Double> times = new ArrayList<Double>(this.T);
     	TopIndividual intInd = (TopIndividual) ind;
     	Random r = new Random();
-    	boolean fl = false, flag;
-		double fitness = 0.0, time = 0.0;
-		int j, lastVertice = 0, min, topPriorityGene = -1, random, counter;
+    	boolean flag = true, fl = false;
+		double fitness = 0.0, min_dist = this.deadline + 1;
+		int min, topPriorityGene = -1, random, counter, trip = -1, pos = -1;
 		
 
 		// inicializar o array que irá conter as viagens
-		for(j=0 ; j<this.T ; j++)
+		for(int j=0 ; j<this.T ; j++)
 			viagens_aux[j] = new ArrayList<Integer>();
 		
+		// inicializar o array que irá conter os tempos das viagens
+		for(int j=0 ; j<this.T ; j++)
+			times.add(0.0);
 		
-		// ciclo para percorrer os viajantes
-		for(j=0 ; j<this.T ; j++) {
-		
-			flag=true;
+		/*
+		 * Enquanto for possível inserir vértices, é iterado o ciclo em baixo 
+		 */
+		while(flag)
+		{
 			
-			// ciclo para preencher ordenadamente o array viagem, até que a sua duração seja máxima
-			while( flag ) {
-						
+			/* Ciclo utilizado para escolher o vértice de maior prioridade que caiba numa viagem, executando os seguintes passos até
+			um vértice ser escolhido, ou até todos serem percorridos
+					-> Escolher os vértices de maior prioridade
+					-> Aleatoriamente ir escolhendo um desses vértices, até um encaixar numa viagem, ou até todos terem sido percorridos							
+			*/			
+			while( !fl && ((int) blackList.size()) + viagens.size() < this.variables - 2 ) {
+
+
+				// inicializar a variável que irá conter o menor valor dos genes do cromossoma
+				min = (this.variables >= 10 ? this.variables + 1 : 10);
 				
-//System.out.println("ENTROU!");
-//System.out.println("fl: " + fl + "\nblackList.size: " + blackList.size() + "\nviagens.size: " + viagens.size());
-
-//System.out.println("--------------- VIAGENS ---------------");
-//for (int h=0 ; h < viagens.size() ; h++)
-	//System.out.println("indice " + h + ": " + viagens.get(h));
-//System.out.println("---------------------------------------");
-				
-//pressEnterToContinue();
-
-
-				/* Ciclo utilizado para escolher o vértice de maior prioridade que caiba na viagem, executando os seguintes passos até
-				um vértice ser escolhido, ou até todos serem percorridos
-						-> Escolher os vértices de maior prioridade
-						-> Aleatoriamente ir escolhendo um desses vértices, até um encaixar na viagem, ou até todos terem sido percorridos							
-				*/			
-				while( !fl && ((int) blackList.size()) + viagens.size() < this.variables - 2 ) {
+				// Percorrer os genes do cromossoma
+				for (int i = 1; i < this.variables - 1; i++) {
 					
-					// inicializar a variável que irá conter o menor valor dos genes do cromossoma
-					min = (this.variables >= 10 ? this.variables + 1 : 10);
-					
-					// Percorrer os genes do cromossoma
-					for (int i = 1; i < this.variables - 1; i++) {
+					/* se o gene que se encontra a ser processado tiver prioridade igual ou superior à máxima prioridade encontrada,
+					se ainda não estiver marcado para ser visitado por um viajante e se o gene não estiver na blacklist, indicando
+					que já terá sido descartado desta viagem.... */
+					if(intInd.getIntegerAllele(i) <= min && !viagens.contains(i) && !blackList.contains(i)) {
 						
-						/* se o gene que se encontra a ser processado tiver prioridade igual ou superior à máxima prioridade encontrada,
-						se ainda não estiver marcado para ser visitado por um viajante e se o gene não estiver na blacklist, indicando
-						que já terá sido descartado desta viagem.... */
-						if(intInd.getIntegerAllele(i) <= min && !viagens.contains(i) && !blackList.contains(i)) {
-							
-							if(intInd.getIntegerAllele(i) != min) {
-								maxValues.clear();
-								min = intInd.getIntegerAllele(i);
-							}
-							
-							/* guardar o índice do gene na lista que contém 
-							 os índices dos genes de valor máximo */
-							maxValues.add(i);
+						if(intInd.getIntegerAllele(i) != min) {
+							maxValues.clear();
+							min = intInd.getIntegerAllele(i);
 						}
-					}
-					
-
-					// se existirem vários genes com o mesmo valor (máximo)
-					if(maxValues.size() > 1) {
-//System.out.println("MAX VALUES > 1");
-						// escolher um gene de forma aleatória
-						r = new Random(System.currentTimeMillis());
-						random = r.nextInt(maxValues.size());
-						topPriorityGene = maxValues.get(random);
-					}
-					else { // se apenas existir um gene com o valor máximo
-//System.out.println("MAX VALUES == 1");
-						topPriorityGene = maxValues.get(0);
-						random = 0;
-					}
-					
-								
-					 // se o gene escolhido couber na rota
-			    	if (time + this.getDistance(lastVertice, topPriorityGene) + this.getDistance(topPriorityGene, this.variables - 1) <= this.deadline)
-						fl = true;  // indicar a escolha dum gene
-					else {
-				 
-	 					counter = 0;
-
-						// percorrer todos os vértices de prioridade máxima ainda não escolhidos até um caber na viagem
-						for(int k=0 ; !fl && (k+1)<maxValues.size() ; k++) {
-							
-							int kk;
-							
-							// colocar o seu índice no array de genes com prioridade máxima, na blacklist
-							auxBlackList.add(random + counter);
-							blackList.add(maxValues.get(random + counter));
-							
-							
-							// escolher novo gene com prioridade máxima, de forma aleatória
-							random = r.nextInt(maxValues.size() - (k+1));
-				
-							
-							// ordenar os arrays blackList e auxBlackList
-							Collections.sort(auxBlackList);
-							Collections.sort(blackList);
-														
-  	
-							// ciclo para contar o número de posições que é preciso saltar do array maxValues, por estarem na blacklist
-							for(counter=0, kk=0 ; kk <= k ; kk++)
-								if(auxBlackList.get(kk) <= random+counter)
-									counter++;
-  	
-							topPriorityGene = maxValues.get(random + counter);	// guardar o índice do novo gene escolhido aleatoriamente
-//System.out.println("TOP PRIORITY GENE: " + topPriorityGene);			
-
-							
-							// se o tempo máximo da viagem com o novo gene escolhido não exceder deadline
-							if( time + this.getDistance( (viagens_aux[j].size()==0) ? 0 : lastVertice, topPriorityGene) + 
-									   this.getDistance(topPriorityGene, this.variables - 1) <= this.deadline ) {
-																	
-								fl = true;  // assinalar a escolha dum gene
-							}
-						}
-
-						// limpar a blacklist, para que numa próxima iteração do ciclo acima esta esteja vazia
-						auxBlackList.clear();
 						
-						blackList.add(maxValues.get(random + counter));
-						
-					}	    	
+						/* guardar o índice do gene na lista que contém 
+						 os índices dos genes de valor máximo */
+						maxValues.add(i);
+					}
 				}
 				
-				// limpar a blacklist e o array maxValues, para que numa próxima iteração do ciclo acima estes estejam vazios
-				blackList.clear();
-				maxValues.clear();
+	
+				// se existirem vários genes com o mesmo valor (máximo)
+				if(maxValues.size() > 1) {
+//System.out.println("MAX VALUES > 1");
+					// escolher um gene de forma aleatória
+					r = new Random(System.currentTimeMillis());
+					random = r.nextInt(maxValues.size());
+					topPriorityGene = maxValues.get(random);
+				}
+				else { // se apenas existir um gene com o valor máximo
+//System.out.println("MAX VALUES == 1");
+					topPriorityGene = maxValues.get(0);
+					random = 0;
+				}
+				
+			
+				// variável auxiliar utilizada para guardar a distância mínima calculada ao iterar o próximo ciclo 
+				min_dist = this.deadline + 1;
+				
+				// variável auxiliar utilizada para guardar a viagem na qual ocorreu a distância mínima
+				trip = -1;
+				
+				// variável auxiliar utilizada para guardar a posição da viagem na qual ocorreu a distância mínima
+				pos = -1;
+
+				
+				/*
+				 * Ciclo utilizado para implementar a segunda restrição, que impôe que o vértice escolhido para 
+				 * entrar nas viagens vai ser colocado no local que mais favorece a viagem. O ciclo externo itera
+				 * as viagens e o interno itera as posições de cada viagem.  
+				 */
+				for(int j=0 ; j<this.T ; j++) {
+				
+//System.out.println("viagens_aux[j].size(): " + viagens_aux[j].size());
+//this.pressEnterToContinue();
+						
+						for(int i=0 ; i<viagens_aux[j].size() + 1 ; i++) {
+
+//System.out.println("j: " + j + "\ni: " + i);
+
+							double aux = this.calc_new_vertice(viagens_aux[j], topPriorityGene, i, times.get(j));
+
+//System.out.println("topPriorityGene: " + topPriorityGene + "\ntimes.get(j): " + times.get(j) + "\ncalculated: " + aux + "\nmin_dist: " + min_dist);
+
+						if( aux <= this.deadline && aux < min_dist ) {
+							
+							min_dist = aux;
+							trip = j;
+							pos = i;
+						}
+					}
+				}
+				
+				 // se o gene escolhido couber numa rota
+		    	if (pos != -1)
+					fl = true;  // indicar a escolha dum gene
+				else {
+					
+					counter = 0;
+		
+					// percorrer todos os vértices de prioridade máxima ainda não escolhidos até um caber na viagem
+					for(int k=0 ; !fl && (k+1)<maxValues.size() ; k++) {
+						
+						int kk;
+						
+						// colocar o seu índice no array de genes com prioridade máxima, na blacklist
+						auxBlackList.add(random + counter);
+						blackList.add(maxValues.get(random + counter));
+						
+						
+						// escolher novo gene com prioridade máxima, de forma aleatória
+						random = r.nextInt(maxValues.size() - (k+1));
+			
+						
+						// ordenar os arrays blackList e auxBlackList
+						Collections.sort(auxBlackList);
+						Collections.sort(blackList);
+													
+		
+						// ciclo para contar o número de posições que é preciso saltar do array maxValues, por estarem na blacklist
+						for(counter=0, kk=0 ; kk <= k ; kk++)
+							if(auxBlackList.get(kk) <= random+counter)
+								counter++;
+		
+						topPriorityGene = maxValues.get(random + counter);	// guardar o índice do novo gene escolhido aleatoriamente
+//System.out.println("TOP PRIORITY GENE: " + topPriorityGene);			
+		
+						 
+						min_dist = this.deadline + 1;
+						trip = -1;
+						pos = -1;			
+
+						
+						/*
+						 * Ciclo utilizado para implementar a segunda restrição, que impôe que o vértice escolhido para 
+						 * entrar nas viagens vai ser colocado no local que mais favorece a viagem. O ciclo externo itera
+						 * as viagens e o interno itera as posições de cada viagem.  
+						 */
+						for(int j=0 ; j<this.T ; j++) {
+						
+							for(int i=0 ; i<viagens_aux[j].size() + 1 ; i++) {
+							
+								double aux = this.calc_new_vertice(viagens_aux[j], topPriorityGene, i, times.get(j));
+//System.out.println("topPriorityGene: " + topPriorityGene + "\ntimes.get(j): " + times.get(j) + "\ncalculated: " + aux);
+
+								if( aux <= this.deadline && aux <= min_dist ) {
+									
+									min_dist = aux;
+									trip = j;
+									pos = i;
+								}
+							}
+						}
+						
+						 // se o gene escolhido couber numa rota
+				    	if (pos != -1)							
+							fl = true;  // assinalar a escolha dum gene	
+					}
+		
+					// limpar a blacklist, para que numa próxima iteração do ciclo acima esta esteja vazia
+					auxBlackList.clear();
+					
+					blackList.add(maxValues.get(random + counter));
+				}
+			}
+			
+			
+			// limpar a blacklist e o array maxValues, para que numa próxima iteração do ciclo acima estes estejam vazios
+			blackList.clear();
+			maxValues.clear();
+				
+	
+//System.out.println("fl: " + fl);
+			
+			// se um gene tiver sido seleccionado para ser colocado na viagem
+			if(fl) {
+				
+//System.out.println("times.size(): " + times.size() + "\ntrip: " + trip + "\nmin_dist: " + min_dist);
+						
+				times.set(trip, min_dist); //atualizar a variável times com o novo tempo de duração da rota
+		
+			    int prev = topPriorityGene;
+			    
+				// atualizar array viagens_aux com o novo gene
+				for(int j=pos ; j<viagens_aux[trip].size() ; j++) {
+					
+					int next = viagens_aux[trip].get(j);
+					
+					viagens_aux[trip].set(j, prev);
+					prev = next;
+				}
 				
 				
-				/* A 2ª restrição é implementada dentro do if abaixo */		
+				// terminar de atualizar array viagens_aux com o novo gene
+				viagens_aux[trip].add(prev);
 				
-				// se um gene tiver sido seleccionado para ser colocado na viagem
-				if(fl) {
-					
-					// atualizar a variável t com o tempo já percorrido
-				    time += this.getDistance(lastVertice, topPriorityGene); // atualiza o tempo de duração da rota
-																		
-					// atualizar arrays viagens e viagem com esse gene
-					viagens_aux[j].add(topPriorityGene);
-					viagens.add(topPriorityGene);
-					
-					// atualizar o peso do alelo
-					intInd.setAllele(topPriorityGene, viagens.size());
-		  	
-					// na próxima iteração deste ciclo, o último vértice tomado será o que agora foi inserido nas rotas
-		    		lastVertice = topPriorityGene;
-		  	
-					// mas se o tempo máximo da viagem tiver sido atingido
-					if( this.deadline == time + this.getDistance(topPriorityGene, this.variables - 1) )
-						flag = false;  // atualizar a flag para sair do ciclo
-					
-					// mudar o valor da flag que assinala a escolha dum gene para colocar na viagem para recomeçar novo processo
-					fl = false;
+				
+				// atualizar array viagens com o novo gene, sendo que é descurada a ordenação
+				viagens.add(topPriorityGene);
+				
+				// atualizar o peso do alelo
+				intInd.setAllele(topPriorityGene, viagens.size());
+				
+				// mudar o valor da flag que assinala a escolha dum gene para colocar na viagem para recomeçar novo processo
+				fl = false;
 					
 /*
 System.out.println("top priority gene: " + topPriorityGene);
@@ -347,6 +408,7 @@ System.out.println("--------------- VIAGENS ---------------");
 for (int h=0 ; h < viagens.size() ; h++)
 	System.out.println("indice " + h + ": " + viagens.get(h));
 System.out.println("---------------------------------------");
+this.pressEnterToContinue();
 */
 				    
 					// atualiza o valor do fitness
@@ -354,13 +416,9 @@ System.out.println("---------------------------------------");
 				}
 				else  // caso contrário (se nenhum dos vértices de alta prioridade couber no fim da viagem)
 					flag = false;  // atualizar a flag para sair do ciclo
-			}
-			
-			
-			// reinicializar as variáveis necessárias para controlar a evolução duma viagem dum viajante
-			lastVertice = 0;
-			time = 0.0;
 		}
+		
+		double totalPrizes = fitness;
 		
 		fitness = fitness/this.totalScore;
 		
@@ -372,15 +430,18 @@ System.out.println("---------------------------------------");
 			
 			for(int i=0 ; i<this.T ; i++) {
 
-				System.out.println("-------------- VIAGEM " + i + " ---------------");
+				System.out.println("-------------- VIAGEM " + i + " || time: " + times.get(i) +" ---------------");
 				
-				for (int h=0 ; h < this.bestTrip [i].size() ; h++)
-					System.out.println("indice " + h + ": " + this.bestTrip [i].get(h));
+				for (int h=0 ; h < this.bestTrip[i].size() ; h++)
+					System.out.println("indice " + h + ": " + this.vertices.get(this.bestTrip[i].get(h)).getID());
 				
-				System.out.println("---------------------------------------");
+				
+				System.out.println("-------------------------------------------------------------------");
 			}
 			
-			System.out.println("\n");
+			System.out.println("\nTotal prémios recolhidos: " + totalPrizes);
+			
+			System.out.println("\n");			
 /*
 System.out.println("--------------- VIAGENS ---------------");
 for (int h=0 ; h < viagens.size() ; h++)
@@ -406,6 +467,43 @@ System.out.println("---------------------------------------");*/
 		
 		return new Double(fitness);
     }
+		
+	/* Retorna um bool indicando se o array de booleans apenas possui falsos ou não */
+	public boolean full(ArrayList<Boolean> flags) {
+		
+		boolean full = true;
+		
+		for(int i=0 ; i<this.T && full ; i++)
+			if(flags.get(i) == true)
+				full = false;
+		
+		return full;
+	}
+	
+	/* Retorna a nova distância da viagem recebida (com o novo vértice numa dada posição) */
+	public double calc_new_vertice(ArrayList<Integer> viagem, int topPriorityGene, int pos, double prev_time) {
+
+		double new_distance;		
+		
+		if(viagem.size() == 0)
+			new_distance = this.getDistance(0, topPriorityGene) + this.getDistance(topPriorityGene, this.variables - 1);
+		else
+			if(pos == 0)
+				new_distance = prev_time - this.getDistance(0, viagem.get(pos))
+								 		 + this.getDistance(0, topPriorityGene) 
+								 		 + this.getDistance(topPriorityGene, viagem.get(pos));
+			else
+				if (pos == viagem.size())
+					new_distance = prev_time - this.getDistance(viagem.get(viagem.size() - 1), this.variables - 1) 
+									 		 + this.getDistance(viagem.get(viagem.size() - 1), topPriorityGene) 
+									 		 + this.getDistance(topPriorityGene, this.variables - 1);
+				else
+					new_distance = prev_time - this.getDistance(viagem.get(pos-1), viagem.get(pos)) 
+									 		 + this.getDistance(viagem.get(pos-1), topPriorityGene)
+									 		 + this.getDistance(topPriorityGene, viagem.get(pos));
+		
+		return new_distance;
+	}
     
     /* Retorna uma string representativa dos dados do problema */
     public String toString() {

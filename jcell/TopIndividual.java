@@ -115,7 +115,7 @@ public class TopIndividual extends Individual
    				  alleles[locus] = r.nextInt(((Integer)maxAlleleValues.elementAt(locus)).intValue());
    			  else 
    				  if ((minAlleleValues==null) && (maxAlleleValues==null))
-   					  alleles[locus] = r.nextInt(10);
+   					  alleles[locus] = r.nextInt(this.len);
    }
    
    // Mutates the gene in position 'locus' assigning it a random value 
