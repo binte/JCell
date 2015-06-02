@@ -21,6 +21,7 @@ public class Target {
 	{
 		Individual ind1 = (Individual) indiv1;
 		Individual ind2 = (Individual) indiv2;
+		
 		if (ind1.getFitness().getClass() == Double.class) // Single Target
 		{
 			if (maximize)
@@ -57,10 +58,9 @@ public class Target {
 	}
 	
 	public static boolean isBetterOrEqual(double fitness1, double fitness2)
-	{
-		if (maximize)
+	{		
+		if (maximize) 
 			return fitness1 >= fitness2;
-		
 		else
 			return fitness1 <= fitness2;
 	}

@@ -47,9 +47,9 @@ public class JCell implements GenerationListener
     public static void main (String args[]) throws Exception
     {
 
-    	if (args.length != 1)
+    	if (args.length != 2)
         {
-           System.out.println("Error. Try java JCell <ConfigFile>");
+           System.out.println("Error. Try java JCell <ConfigFile> <InstanceFile>");
            System.exit(-1);
         }
     	
@@ -62,12 +62,13 @@ public class JCell implements GenerationListener
 		
 		// Read the configuration file
 		ReadConf conf = new ReadConf(args[0], r);
-		
-		// Create and initialice cea with the parameters of the configuration
+
+		// Create and initialize cea with the parameters of the configuration
 		//EvolutionaryAlg ea = conf.getParameters();
 		ea = conf.getParameters();
-				
+
 		Problem prob = (Problem)ea.getParam(CellularGA.PARAM_PROBLEM);
+
 		longitCrom = prob.numberOfVariables();
 		numberOfFuncts = prob.numberOfObjectives();
 		
@@ -79,8 +80,10 @@ public class JCell implements GenerationListener
 		showDisplay = (ea.getParam(CellularGA.PARAM_DISPLAY) != null);
 		
 		inicio = (new Date()).getTime();
-		// generation cycles
+
+		// generation cycles are performed in the next method
 		ea.experiment();
+
 		fin = (new Date()).getTime();
 				
 		// output best solution
@@ -92,7 +95,7 @@ public class JCell implements GenerationListener
 			  if (ea.getParam(CellularGA.PARAM_DISPLAY2) != null)
 				  display2.step();
 		   }
-
+	   
 	   //last step 
 	   /*xfig SNAPSHOT
 	   PopGrid tmppop = (PopGrid) cea.getPopulation();
@@ -164,7 +167,6 @@ public class JCell implements GenerationListener
 				System.out.println(best + " " + (Integer) ea.getParam(CellularGA.PARAM_GENERATION_NUMBER)+" "+ evals +" "+(fin-inicio) + " " 
 						+ ((Problem) ea.getParam(CellularGA.PARAM_PROBLEM)).getClass().getName());
 		}
-
     }
 
     private void writeLine(String line)
@@ -186,7 +188,7 @@ public class JCell implements GenerationListener
 			Individual bestInd = ((Population) ea.getParam(EvolutionaryAlg.PARAM_POPULATION)).getIndividual(pos);
 			Problem prob = (Problem)ea.getParam(EvolutionaryAlg.PARAM_PROBLEM);
 			if (prob.numberOfObjectives() == 1)
-				writeLine("Generation: " + (Integer) ea.getParam(CellularGA.PARAM_GENERATION_NUMBER) + "; Best individual: " + ((Double)bestInd.getFitness()).doubleValue());
+				writeLine("Generation: " + (Integer) ea.getParam(CellularGA.PARAM_GENERATION_NUMBER) + "; Best individual: " + ((BinaryIndividual) bestInd).toString() + "\n");
 			else
 				writeLine("Generation: " + (Integer) ea.getParam(CellularGA.PARAM_GENERATION_NUMBER));
     	}

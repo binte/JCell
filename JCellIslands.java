@@ -54,6 +54,7 @@ public class JCellIslands implements GenerationListener
 		
 		//Problem prob = new MMDP();
 		Problem prob = new MTTP();
+
 		ea.setParam(CellularGA.PARAM_PROBLEM, prob);
 		longitCrom = prob.numberOfVariables();
 		numberOfFuncts = prob.numberOfObjectives();

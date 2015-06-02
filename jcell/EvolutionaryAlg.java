@@ -175,7 +175,7 @@ public abstract class EvolutionaryAlg
       // For the multi-objective case
    }
 
-   // Returns any parameter of the algorithm (specifued as 'keyValue') as an Object
+   // Returns any parameter of the algorithm (specified as 'keyValue') as an Object
    public Object getParam(int keyValue)
    {
       switch (keyValue)

@@ -8,6 +8,7 @@
 
 package genEA;
 
+import java.io.BufferedReader;
 import java.util.Random;
 
 import jcell.*;
@@ -19,27 +20,32 @@ public class GenGA extends EvolutionaryAlg
       super(r);
    }
    
+   /* Método invocado na main */
    public void experiment()
    {
-	   
-	   // Could be used as a multiobjective algorithm, but it is not tested.
-	   boolean multiobjective = problem.numberOfObjectives() > 1;
-	   
-      double optimum; // Best fitness value in the population
 
-      Operator oper;
-      Individual iv[] = new Individual[2]; // Used for crossover
-	Integer ind[] = new Integer[2]; // Used for avoiding that the same individual is selected twice in selection
+	// Could be used as a multiobjective algorithm, but it is not tested.
+	boolean multiobjective = problem.numberOfObjectives() > 1;
+	   
+    double optimum; // Best fitness value in the population
+
+    Operator oper;
+    Individual iv[] = new Individual[2]; // Used for crossover
+    Integer ind[] = new Integer[2]; // Used for avoiding that the same individual is selected twice in selection
       
 	Population auxPop = new Population(population.getPopSize());
 		
     problem.reset(); // Set the number of evaluations to 0
-    problem.evaluatePopulation(population); 
+
+	//invoca o método eval() para todos os cromossomas da população
+    problem.evaluatePopulation(population);
     
     int worst = 0, best = 0;
+    
     if (multiobjective) // Only if we are solving a multiobjective problem
     {
-  	  paretoFront.initialize(population);
+  	  paretoFront.initialize(population);  	  
+  	  
 	      // Get the position of the best and worst individual in the population
 	      for (int i=1; i<population.getPopSize(); i++)
 	      {
@@ -58,18 +64,18 @@ public class GenGA extends EvolutionaryAlg
 	  	optimum = ((Double)statistic.getStat(SimpleStats.MAX_FIT_VALUE)).doubleValue();
 	  else  // if it is a minimization problem
 		  optimum = ((Double)statistic.getStat(SimpleStats.MIN_FIT_VALUE)).doubleValue();
-	  
+System.out.println("mine optimum: " + optimum + "\ntargetFitness: " + targetFitness);	  
 	  if (Target.isBetterOrEqual(optimum, targetFitness))
 		  return; // stop if the solution is found
 	}
 
     generationNumber = 0;
     listener.generation(this);
-             
+
       // For the termination condition we can set either a max number of generations or a max number of evaluations
       while ((problem.getNEvals() < evaluationLimit) && (generationNumber < generationLimit))
-      {
-    	  // Insert the best individual in the population into the new population (elitism) 
+      {	  
+    	 // Insert the best individual in the population into the new population (elitism) 
       	 if (multiobjective)
       		auxPop.setIndividual(0, population.getIndividual(best));
       	 else if(Target.maximize)
@@ -79,7 +85,7 @@ public class GenGA extends EvolutionaryAlg
       	 
          for (int k=1; k<population.getPopSize(); k++)
          {
-        	 // BREEDING LOOP:
+        	// BREEDING LOOP:
         	 
             // First parent selection
 			oper = (Operator)operators.get("selection1");
@@ -153,9 +159,11 @@ public class GenGA extends EvolutionaryAlg
      	   			  best = i;
      	      }
          }
+         
          generationNumber++;
          // listener is a class for monitoring the search, if needed
          listener.generation(this);
-      }
+         
+      } //while((problem.getNEvals() < evaluationLimit) && (generationNumber < generationLimit))
    }
 }

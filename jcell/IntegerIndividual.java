@@ -241,11 +241,7 @@ public class IntegerIndividual extends Individual
 					   for (int k=0; k<len; k++)
 						   if (alleles[k] == val)
 							   rightGene = false;
-						   
 				   }
-				   
-				   
 			   }
    }
-	
 }
