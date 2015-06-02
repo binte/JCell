@@ -74,6 +74,13 @@ public class PopGrid extends Population
       setIndividual(toLineal(p),ind);
    }
    
+   public void incrementPopSize() {
+
+	   this.popSize++;
+	   population = new Individual[popSize];
+   }
+   
+   
    public int toLineal(int x, int y)
    {
       while (x<0)

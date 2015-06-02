@@ -193,6 +193,7 @@ public class TopIndividual extends Individual
       
       for (int i=0; i<len; i++)
          sb.append(alleles[i]+" ");
+      
       sb.append("] Fitness: "+fitness);
       
       return sb.toString();

@@ -39,7 +39,7 @@ public class TopMutation implements Operator
 			if (r.nextDouble() <= prob)
 				ind.mutate(r,i, lastWeight); //Mutate gene i
       
-      return ind;
+		return ind;
     }
 	
 	// Parameter Individual, returns Individual
@@ -47,7 +47,7 @@ public class TopMutation implements Operator
 	{
 		TopIndividual ind = (TopIndividual) o;
 		int len = ind.getLength(); //Length of individual
-		double prob = ((Double)this.ea.getParam(CellularGA.PARAM_ALLELE_MUTATION_PROB)).doubleValue() / 2; 
+		double prob = ((Double)this.ea.getParam(CellularGA.PARAM_ALLELE_MUTATION_PROB)).doubleValue();
 
 //int nGenes2mutate = (Integer)this.ea.getParam(CellularGA.PARAM_MUTATIONS_PER_CHROMOSOME);				
 //int nGenes2mutate = ( ((len/2)-1) * ((Integer)this.ea.getParam(CellularGA.PARAM_GENERATION_NUMBER)).intValue() / 500/*((Integer)this.ea.getParam(CellularGA.PARAM_GENERATION_LIMIT)).intValue()*/ ) + 1; // nœmero de genes a mutar nesta itera‹o

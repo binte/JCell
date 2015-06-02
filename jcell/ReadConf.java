@@ -167,6 +167,7 @@ public class ReadConf {
 			// Set the limit of evaluations
 			String evals = properties.getProperty("EvaluationsLimit");
 			Integer evaluationsLimit = new Integer(evaluationsLimitDf);
+
 			if (evals == null)
 				writeLine("Limit of evaluations not provided. Default value: " + evaluationsLimitDf);
 			else
@@ -215,6 +216,7 @@ public class ReadConf {
 						Random[] aux = new Random[1];
 						aux[0] = r;
 						ea = (EvolutionaryAlg) cons[i].newInstance(aux); // Constructor called
+			
 						break;
 					}
 				}
@@ -224,6 +226,7 @@ public class ReadConf {
 			
 			// Set the population shape
 			String popSize = properties.getProperty("Population");
+			
 			if ((popSize == null) && (!alg.equalsIgnoreCase("ils")))
 			{
 				System.err.println("Population shape not provided.");
@@ -247,26 +250,38 @@ public class ReadConf {
 				pop = new PopIsland(isl,totalPopSize/isl);
 			}
 			else if (begin != 0 && !alg.equalsIgnoreCase("generational"))
-			{
-				end   = popSize.indexOf(",");
-				x = (new Integer(popSize.substring(begin,end).trim()));
-				begin = end + 1;
+			{	
 				
-				if((end = popSize.indexOf("]")) >= 0) {
+				end   = popSize.indexOf(",");
+				
+				if(end < 0) {
 					
-					begin = popSize.indexOf("[") + 1;
+					begin = popSize.indexOf("(") + 1;
+					end = popSize.indexOf(")");
 					
-					y = 10;
-					
-					this.proportion = (new Double(popSize.substring(begin,end).trim()));
+					this.proportion = (new Double(popSize.substring(begin, end).trim()));
 				}
 				else {
-					
-					end   = popSize.indexOf(")");
-					
-					y = (new Integer(popSize.substring(begin,end).trim()));					
-				}
 				
+					x = (new Integer(popSize.substring(begin,end).trim()));
+					begin = end + 1;
+					
+					if((end = popSize.indexOf("]")) >= 0) {
+						
+						begin = popSize.indexOf("[") + 1;
+						
+						y = 10;
+						
+						this.proportion = (new Double(popSize.substring(begin,end).trim()));
+					}
+					else {
+						
+						end   = popSize.indexOf(")");
+						
+						y = (new Integer(popSize.substring(begin,end).trim()));					
+					}
+				}
+					
 				// Create the population
 				pop = new PopGrid(x,y);
 			}
@@ -618,8 +633,30 @@ public class ReadConf {
 
 			if (mutValue==null)
 				writeLine("Mutation probability not provided. Default value: " + mutationDf);
-			else
-				mutation = new Double(mutValue);
+			else {
+				
+				begin = 0;
+				end = 0;
+				
+				begin = mutValue.indexOf("[") + 1;
+				
+				if(begin < 0)
+					mutation = new Double(mutValue);
+				else {
+					
+					double denominador, numerador;
+					
+					end = mutValue.indexOf("/");
+					numerador = new Double(mutValue.substring(begin,end).trim());
+					
+					begin = end + 1;
+					end = mutValue.indexOf("]");
+					denominador = new Double(mutValue.substring(begin,end).trim());
+					denominador*=problem.getVariables();
+					
+					mutation = numerador/denominador;
+				}
+			}
 
 
 			Boolean alleleMutation = false;
@@ -904,12 +941,12 @@ public class ReadConf {
 			ea.setParam(CellularGA.PARAM_CELL_UPDATE, cu);
 			ea.setParam(CellularGA.PARAM_PROBLEM, problem);
 			ea.setParam(CellularGA.PARAM_EVALUATION_LIMIT, evaluationsLimit);
-			ea.setParam(CellularGA.PARAM_MUTATION_PROB, mutation);
+//			ea.setParam(CellularGA.PARAM_MUTATION_PROB, mutation);
 
 			if (alleleMutation)
 				ea.setParam(CellularGA.PARAM_ALLELE_MUTATION_PROB, new Double(alleleMutationProb)); // probability of allele mutation
 			else if (problem.getVariables() > 1)
-				ea.setParam(CellularGA.PARAM_ALLELE_MUTATION_PROB, new Double(1.0/(double)problem.getVariables())); // probability of allele mutation
+				ea.setParam(CellularGA.PARAM_ALLELE_MUTATION_PROB, mutation); // probability of allele mutation
 			else
 				ea.setParam(CellularGA.PARAM_ALLELE_MUTATION_PROB, new Double(0.5)); // probability of allele mutation
 
@@ -1074,7 +1111,7 @@ public class ReadConf {
 		}
 		catch (Exception e)
 		{
-			System.out.println("Error ocured while reading the configuration file: " + e);
+			System.out.println("Error occured while reading the configuration file: " + e);
 			System.exit(-1);
 		}
 		

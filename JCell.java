@@ -107,10 +107,11 @@ public class JCell implements GenerationListener
 			popAux.setPopSize( (int) (prob.getVariables()*conf.getProportion()) );
 		else
 			if(conf.getProperties().getProperty("Algorithm").equalsIgnoreCase("cellular") && conf.getProportion()!=0) {
+
+				int aux = (int) Math.round( (Math.sqrt(prob.getVariables() * conf.getProportion())) );
 				
-				popAux.setPopSize( (int) (prob.getVariables()*conf.getProportion()* ((PopGrid)popAux).getDimX()) );
-				
-				((PopGrid)popAux).setDimension(((PopGrid)popAux).getDimX(), (int) (prob.getVariables()*conf.getProportion()) );
+				((PopGrid)popAux).setDimension(aux, aux);
+				popAux.setPopSize(aux*aux);
 				
 				((FixedRandomSweep)ea.getParam(CellularGA.PARAM_CELL_UPDATE)).setPermutationIndividual(popAux.getPopSize());
 			}
@@ -125,7 +126,7 @@ public class JCell implements GenerationListener
 		Individual individual = null; // The individual is initialized here.
 		individual = (Individual) c.newInstance();
 		individual.setMinMaxAlleleValue(true, prob.getMinAllowedValues());
-		individual.setMinMaxAlleleValue(false, prob.getMaxAllowedValues());
+		individual.setMinMaxAlleleValue(false, prob.getMaxAllowedValues());	
 		individual.setLength(prob.getVariables());
 		individual.setNumberOfFuncts(prob.numberOfObjectives());
 	
@@ -243,8 +244,11 @@ public class JCell implements GenerationListener
 				best = new Double(sat.evalCount(bestInd));
 			}
 			
+System.out.print("Execuções do algoritmo construtivo: " + evals + ".");
+			
 			if (((Boolean)ea.getParam(EvolutionaryAlg.PARAM_VERBOSE)).booleanValue())
 				System.out.println("Solution: Best  Generations  Evaluations  Time (ms)  Problem");
+
 			if(prob.getClass().getName().equalsIgnoreCase("problems.Combinatorial.DNAFragmentAssembling"))
 			{
 				System.out.println(best + " " + contig + " " + (Integer) ea.getParam(CellularGA.PARAM_GENERATION_NUMBER)+" "+ evals +" "+(fin-inicio) + " "
