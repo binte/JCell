@@ -27,7 +27,7 @@ public class MAXCUT20_01 extends Problem
 {0.000000, 0.000000, 0.916311, 0.000000, 0.000000, 0.032054, 0.000000, 0.000000, 0.000000, 0.969750, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000}
 };
     int cols = 20;
-    public MAXCUT20_01()    {    	super();		variables = longitCrom;		super.maxFitness = maxFitness;    	Target.maximize = true;    }
+    public MAXCUT20_01(String dataFile)    {    	super(dataFile);    			variables = longitCrom;		super.maxFitness = maxFitness;    	Target.maximize = true;    }
 
     public Object eval(Individual ind)
     {

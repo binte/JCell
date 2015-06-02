@@ -26,9 +26,10 @@ public class ECC extends Problem {
     int individualLength = 12;
     int halfCode = 12;
 
-    public ECC()
+    public ECC(String dataFile)
     {
-    	super();
+    	super(dataFile);
+    	
 		variables = longitCrom;
 		super.maxFitness = maxFitness;
     	Target.maximize = true;

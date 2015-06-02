@@ -26,9 +26,10 @@ public class KUR extends Problem
   	private final static int    b				= 3   ; // Constant b
 
 
-	public KUR(CellularGA cmoea)
+	public KUR(String dataFile, CellularGA cmoea)
 	{
-		super(); 
+		super(dataFile);
+		
 		maxAllowedValues = new Vector(3);
 		maxAllowedValues.add(0,new Double(5.0));
 		maxAllowedValues.add(1,new Double(5.0));

@@ -28,6 +28,8 @@ import java.io.IOException;
 import java.util.Random;
 import java.util.Date;
 
+import ExceptionHandlers.*;
+
 
 public class JCell implements GenerationListener
 {
@@ -48,12 +50,15 @@ public class JCell implements GenerationListener
     protected boolean verbose = true;
     private static EvolutionaryAlg ea;
     
+    private static FileWriter fstream;
+    private static BufferedWriter out;
+    
+    
     public static void main (String args[]) throws Exception
     {
-
-    	if (args.length != 2)
+    	if (args.length != 4)
         {
-           System.out.println("Error. Try java JCell <ConfigFile> <InstanceFile>");
+           System.out.println("Error. Try java JCell <ConfigFile> <DataFile> <GenerationLimit> <testFlag>");
            System.exit(-1);
         }
     	
@@ -65,28 +70,86 @@ public class JCell implements GenerationListener
 		JCell sel = new JCell();
 		
 		// Read the configuration file
-		ReadConf conf = new ReadConf(args[0], r);
-
-		// Create and initialize cea with the parameters of the configuration
+		ReadConf conf = new ReadConf(args[0], args[1], r);
+		
+		// Create and initialize ea with the parameters of the configuration
 		//EvolutionaryAlg ea = conf.getParameters();
-		ea = conf.getParameters();
+		ea = conf.getParameters(args[1], Integer.parseInt(args[2]));
 
 		Problem prob = (Problem)ea.getParam(CellularGA.PARAM_PROBLEM);
+		
+		// se se tratar de uma execução de teste
+		if( Boolean.parseBoolean((args[3])) ) // activar a flag respetiva
+			prob.setTesting(Boolean.parseBoolean((args[3])));
+		else // se não se tratar de uma execução de teste
+    		System.out.println(prob.toString());
+		
+		Population popAux = (Population) ea.getParam(CellularGA.PARAM_POPULATION);
+		popAux.setPopSize(prob.getVariables()*2);
+		
+		// Set the Individual
+		String indiv = conf.getProperties().getProperty("Individual");
 
-		longitCrom = prob.numberOfVariables();
+		if (indiv == null)
+			throw new MissedPropertyException("Individual");
+		
+		Class c = Class.forName(indiv);
+		Individual individual = null; // The individual is initialized here.
+		individual = (Individual) c.newInstance();
+		individual.setMinMaxAlleleValue(true, prob.getMinAllowedValues());
+		individual.setMinMaxAlleleValue(false, prob.getMaxAllowedValues());
+		individual.setLength(prob.getVariables());
+		individual.setNumberOfFuncts(prob.numberOfObjectives());
+	
+		popAux.setTopPop(individual, prob.getVariables()); // initialization of the initial population
+
+		
+		ea.setParam(CellularGA.PARAM_POPULATION, popAux);
+		
+		
+		longitCrom = prob.getVariables();
 		numberOfFuncts = prob.numberOfObjectives();
 		
 		ea.setParam(CellularGA.PARAM_LISTENER,sel);
 		ea.setParam(CellularGA.PARAM_FEEDBACK, new Integer(4));
 		
 		int displaySteps = ((Integer)ea.getParam(CellularGA.PARAM_DISPLAY_STEPS)).intValue();
-		
+	
 		showDisplay = (ea.getParam(CellularGA.PARAM_DISPLAY) != null);
 
-		inicio = (new Date()).getTime();
+		if(((Boolean)ea.getParam(CellularGA.PARAM_VERBOSE)).booleanValue()) {
 
+			// inicializar as variáveis para a escrita em ficheiro
+	    	try{
+	    		// Create file 
+	    		fstream = new FileWriter("cromossomas.txt");
+	    		out = new BufferedWriter(fstream);
+	    	} 
+	    	catch (Exception e) { //Catch exception if any
+	    		  
+	    		System.err.println("Error: " + e.getMessage());
+	    		e.printStackTrace();
+	    	}
+		}
+		
+
+		inicio = (new Date()).getTime();
+		
 		// generation cycles are performed in the next method
 		ea.experiment();
+		
+		if(((Boolean)ea.getParam(CellularGA.PARAM_VERBOSE)).booleanValue()) {
+
+			try{
+	    		fstream.close();
+	    		out.close();
+	    	} 
+	    	catch (Exception e) { //Catch exception if any
+	    		  
+	    		System.err.println("Error: " + e.getMessage());
+	    		e.printStackTrace();
+	    	}
+		}
 
 		fin = (new Date()).getTime();
 				
@@ -151,6 +214,7 @@ public class JCell implements GenerationListener
 				problems.Combinatorial.SAT sat = (problems.Combinatorial.SAT) (ea.getParam(CellularGA.PARAM_PROBLEM));
 				best = new Double(sat.evalCount(bestInd));
 			}
+			
 			if (((Boolean)ea.getParam(EvolutionaryAlg.PARAM_VERBOSE)).booleanValue())
 				System.out.println("Solution: Best  Generations  Evaluations  Time (ms)  Problem");
 			if(prob.getClass().getName().equalsIgnoreCase("problems.Combinatorial.DNAFragmentAssembling"))
@@ -167,21 +231,35 @@ public class JCell implements GenerationListener
 				}
 				System.out.println();
 			}
-			else 
-				System.out.println(best + " " + (Integer) ea.getParam(CellularGA.PARAM_GENERATION_NUMBER)+" "+ evals +" "+(fin-inicio) + " " 
+			else
+				if (!prob.testing()) // se não estiver a ser executada uma instância de teste
+					System.out.println(best + " " + (Integer) ea.getParam(CellularGA.PARAM_GENERATION_NUMBER)+" "+ evals +" "+(fin-inicio) + " " 
 						+ ((Problem) ea.getParam(CellularGA.PARAM_PROBLEM)).getClass().getName());
+			
+			
+			if( prob.testing() & prob.getClass().getName().equalsIgnoreCase("problems.Combinatorial.TOP"))
+				System.out.println(((problems.Combinatorial.TOP )prob).getCollected());
 		}
     }
-
+    
     private void writeLine(String line)
 	{
-		if (verbose)
-			System.out.println(line);
+		if (verbose) {
+			
+	    	try{
+	    		out.write(line + "\n");
+	    		out.flush();
+	    	} 
+	    	catch (Exception e) { //Catch exception if any
+	    		  
+	    		System.err.println("Error: " + e.getMessage());
+	    		e.printStackTrace();
+	    	}
+		}
 	}
     
     public void generation(EvolutionaryAlg ea)
     {   
-  
     	//CellularGA cea = (CellularGA) ea;
     	verbose = ((Boolean) ea.getParam(CellularGA.PARAM_VERBOSE)).booleanValue();
 
@@ -192,8 +270,8 @@ public class JCell implements GenerationListener
 			int pos = ((Integer)((Statistic)ea.getParam(EvolutionaryAlg.PARAM_STATISTIC)).getStat(SimpleStats.MAX_FIT_POS)).intValue();
 			Individual bestInd = ((Population) ea.getParam(EvolutionaryAlg.PARAM_POPULATION)).getIndividual(pos);
 			Problem prob = (Problem)ea.getParam(EvolutionaryAlg.PARAM_PROBLEM);
-			if (prob.numberOfObjectives() == 1) {
-				
+			
+			if (prob.numberOfObjectives() == 1) {	
 				if( prob.getClass().getName().equals("problems.Combinatorial.TOP") )
 					writeLine("Generation: " + (Integer) ea.getParam(CellularGA.PARAM_GENERATION_NUMBER) + "; Best individual: " + ((TopIndividual) bestInd).toString() + "\n");
 				else

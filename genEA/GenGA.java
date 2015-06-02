@@ -15,9 +15,9 @@ import jcell.*;
 public class GenGA extends EvolutionaryAlg 
 {
 
-   public GenGA(Random r)
+   public GenGA(Random r, int genLimit)
    {
-      super(r);
+      super(r, genLimit);
    }
    
    /* Método invocado na main */
@@ -25,21 +25,23 @@ public class GenGA extends EvolutionaryAlg
    {
 
 	// Could be used as a multiobjective algorithm, but it is not tested.
-	boolean multiobjective = problem.numberOfObjectives() > 1;
-	   
+	boolean multiobjective = problem.numberOfObjectives() > 1;   
     double optimum; // Best fitness value in the population
 
     Operator oper;
     Individual iv[] = new Individual[2]; // Used for crossover
     Integer ind[] = new Integer[2]; // Used for avoiding that the same individual is selected twice in selection
+	Population auxPop;
 
-	Population auxPop = new Population(population.getPopSize());
-
-    problem.reset(); // Set the number of evaluations to 0
+//	population.setPopSize(problem.getVariables()*2);  // A população será do tamanho do dobro do número de v 
+	auxPop = new Population(population.getPopSize());
+	
+	
+    this.problem.reset(); // Set the number of evaluations to 0
 
 	//invoca o método eval(), implementado nas classes dos problemas, para todos os cromossomas da população
-    problem.evaluatePopulation(population);
-
+    this.problem.evaluatePopulation(population);
+    
     
     int worst = 0, best = 0;
     
@@ -78,6 +80,7 @@ public class GenGA extends EvolutionaryAlg
       // For the termination condition we can set either a max number of generations or a max number of evaluations
       while ((problem.getNEvals() < evaluationLimit) && (generationNumber < generationLimit))
       {
+    	  
     	 // Insert the best individual in the population into the new population (elitism) 
       	 if (multiobjective)
       		auxPop.setIndividual(0, population.getIndividual(best));
@@ -126,16 +129,19 @@ public class GenGA extends EvolutionaryAlg
             if (oper != null)
                if (r.nextDouble() < localSearchProb)
                   iv[0] = (Individual)oper.execute(iv[0]);
-               else problem.evaluate(iv[0]);
-            else problem.evaluate(iv[0]);
+               else 
+            	   problem.evaluate(iv[0]);
+            else 
+            	problem.evaluate(iv[0]);
             
 
             // Replacement: (mu, mu)-GA with elitism
             auxPop.setIndividual(k,iv[0]);
 
             // if we are in the multiobjective case, insert the new solution into the archive
-            if (multiobjective) paretoFront.Insert((Individual)iv[0].clone());
-         }      
+            if (multiobjective) 
+            	paretoFront.Insert((Individual)iv[0].clone());
+         }
          
          // Replace the current population by the new one
          population.copyPop(auxPop);
@@ -165,9 +171,11 @@ public class GenGA extends EvolutionaryAlg
          }
          
          generationNumber++;
-         // listener is a class for monitoring the search, if needed
-         listener.generation(this);
          
+         // listener is a class for monitoring the search, if needed
+         if(Target.isBetter(((Double) statistic.getStat(SimpleStats.MAX_FIT_VALUE)).doubleValue(), ((Double) population.getIndividual(best).getFitness()).doubleValue()))
+        	 listener.generation(this);
+
       } //while((problem.getNEvals() < evaluationLimit) && (generationNumber < generationLimit))
    }
 }

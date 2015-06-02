@@ -25,9 +25,9 @@ public class Constr_Ex extends Problem
   	private final static int    numberOfFuncts	= 2;
 
 
-	public Constr_Ex(CellularGA cmoea)
+	public Constr_Ex(String dataFile, CellularGA cmoea)
 	{
-		super(); 
+		super(dataFile); 
 		
 		variables   = longitCrom;
 	    constraints = 2;

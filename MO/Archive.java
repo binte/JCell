@@ -139,7 +139,7 @@ public abstract class Archive implements Cloneable
 
 	        int archSize = getSize();
 	        int numberFuncts = problem.numberOfObjectives();
-	        int length = problem.numberOfVariables();
+	        int length = problem.getVariables();
 	        
 			for (int i = 0; i<archSize; i++)
 			{

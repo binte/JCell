@@ -122,7 +122,7 @@ public class Repast extends SimpleModel {
 	    
 	}
 	
-	public void begin()
+	public void begin(String dataFile, int genLimit)
 	{
 		super.begin();
 		
@@ -160,7 +160,7 @@ public class Repast extends SimpleModel {
 		problem = new Takeover(x, y);
 		
 		// Initialize variables
-		problem.start(this);
+		problem.start(dataFile, this, genLimit);
 		
 		pop.copyPop(problem.cea.getPopulation());
 		
@@ -197,7 +197,7 @@ public class Repast extends SimpleModel {
 	public void step() {
 		
 		
-		problem.step();
+		this.problem.step();
 		pop.copyPop((PopGrid)problem.cea.getPopulation());
 		int size = pop.getPopSize();
 		

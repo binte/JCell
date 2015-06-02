@@ -24,9 +24,9 @@ public class Golinski extends Problem
   	private final static int    numberOfFuncts	= 2;
 
 
-	public Golinski(CellularGA cmoea)
+	public Golinski(String dataFile, CellularGA cmoea)
 	{
-		super();
+		super(dataFile);
 		
 		variables   = longitCrom;
 	    constraints = 11;

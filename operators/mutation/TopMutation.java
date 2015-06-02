@@ -48,10 +48,13 @@ public class TopMutation implements Operator
 		TopIndividual ind = (TopIndividual) o;
 		int len = ind.getLength(); //Length of individual
 		double prob = ((Double)ea.getParam(CellularGA.PARAM_ALLELE_MUTATION_PROB)).doubleValue(); 
-      
-		for (int i=0; i<len; i++)
+		
+		int nGenes2mutate = ( ((len/2)-1) * ((Integer)this.ea.getParam(CellularGA.PARAM_GENERATION_NUMBER)).intValue() / 500/*((Integer)this.ea.getParam(CellularGA.PARAM_GENERATION_LIMIT)).intValue()*/ ) + 1; // nœmero de genes a mutar nesta itera‹o
+//System.out.println("Geraao: " + ((Integer)this.ea.getParam(CellularGA.PARAM_GENERATION_NUMBER)).intValue());
+//System.out.println("nGenes2mutate: " + nGenes2mutate);
+		for (int i=0; i<nGenes2mutate; i++)
 			if (r.nextDouble() <= prob)
-				ind.mutate(r,i); //Mutate gene i
+				ind.mutate(r,r.nextInt(len)); //Mutate a randomly chosen gene 
       
       return ind;
    }

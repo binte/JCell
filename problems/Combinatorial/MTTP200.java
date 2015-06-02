@@ -32,9 +32,10 @@ public class MTTP200 extends Problem
     int tasks = 200;
 
 
-    public MTTP200()
+    public MTTP200(String dataFile)
     {
-    	super();
+    	super(dataFile);
+    	
 		variables = longitCrom;
 		super.maxFitness = maxFitness;
     	Target.maximize = true;

@@ -14,7 +14,9 @@ public class TakeoverProblem extends Problem
 {
 	private double maxValue;
 	
-	public TakeoverProblem(double _maxValue) {
+	public TakeoverProblem(String dataFile, double _maxValue) {
+		
+		super(dataFile);
 		this.maxValue = _maxValue;
 		
 	}

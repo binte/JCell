@@ -23,9 +23,9 @@ public class Deb extends Problem
 	public final static int longitCrom       = 2;
 	public final static int numberOfFuncts   = 2;
     
-	public Deb(CellularGA cmoea)
+	public Deb(String dataFile, CellularGA cmoea)
 	{
-		super(); 
+		super(dataFile); 
 		
 		variables = longitCrom;
 	    functions = numberOfFuncts;

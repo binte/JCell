@@ -20,17 +20,18 @@ import java.util.Vector;
 public class FMS extends Problem{
   
   /** Creates new ProblemFMS */
-  public FMS() {
-      super() ;
+  public FMS(String dataFile) {
+      
+	  super(dataFile);
       
       Target.maximize = false;
       variables = 6; 
       maxFitness = 0.0;
 
-      minAllowedValues = new Vector (numberOfVariables());
-      maxAllowedValues = new Vector (numberOfVariables());
+      minAllowedValues = new Vector (this.getVariables());
+      maxAllowedValues = new Vector (this.getVariables());
       
-      for (int i=0; i< numberOfVariables(); i++)
+      for (int i=0; i< this.getVariables(); i++)
       {
   		minAllowedValues.add(new Double(-6.4));
   		maxAllowedValues.add(new Double(6.35));

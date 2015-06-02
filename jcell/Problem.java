@@ -17,9 +17,17 @@ public abstract class Problem
    protected int variables;
    protected int functions   = 1;
    protected int constraints = 0;
+   protected boolean testing = false;
    protected double maxFitness = 0.0; // For single objective optimization
    protected Vector maxAllowedValues = null;
    protected Vector minAllowedValues = null;
+   protected String dataFile;
+   
+   
+   public Problem(String dataFile) {
+	   
+	   this.dataFile = dataFile;
+   }
    
    
    public void reset()
@@ -30,6 +38,81 @@ public abstract class Problem
    public int getNEvals()
    {
       return nEvals;
+   }
+   
+   public int getVariables() {
+	   
+	   return this.variables;
+   }
+   
+   public int numberOfObjectives()
+   {
+   	return this.functions;
+   }
+   
+   public int numberOfConstraints()
+   {
+   	return this.constraints;
+   }
+   
+   public boolean testing() {
+	   
+	   return this.testing;
+   }
+   
+   public double getMaxFitness()
+   {
+   	return maxFitness;
+   }
+   
+   public Vector getMaxAllowedValues()
+   {
+   	return maxAllowedValues;
+   }
+   
+   public Vector getMinAllowedValues()
+   {
+   	return minAllowedValues;
+   }
+   
+   public void setNumberOfVariables(int num)
+   {
+   	this.variables = num;
+   }
+   
+   public void setNumberOfObjectives(int num)
+   {
+  	functions = num;
+   }
+   
+   public void setNumberOfConstraints(int num)
+   {
+   	constraints = num;
+   }
+   
+   public void setTesting(boolean flag) {
+	   
+	   this.testing = flag;
+   }
+   
+   public void setMaxFitness(double num)
+   {
+   	maxFitness = num;
+   }
+   
+   public void setMaxAllowedValues(Vector values)
+   {
+   	maxAllowedValues = values;
+   }
+   
+   public void setMinAllowedValues(Vector values)
+   {
+   	minAllowedValues = values;
+   }
+   
+   public void setDataFile(String dataFile)
+   {
+	   this.dataFile = dataFile;
    }
       
    
@@ -63,65 +146,5 @@ public abstract class Problem
    public int computeNumberOfViolatedConstraints(Individual ind)
    {
    	return 0;
-   }
-   
-   public int numberOfVariables()
-   {
-   	return variables;
-   }
-   
-   public int numberOfObjectives()
-   {
-   	return functions;
-   }
-   
-   public int numberOfConstraints()
-   {
-   	return constraints;
-   }
-   
-   public void setNumberOfVariables(int num)
-   {
-   	variables = num;
-   }
-   
-   public void setNumberOfObjectives(int num)
-   {
-  	functions = num;
-   }
-   
-   public void setNumberOfConstraints(int num)
-   {
-   	constraints = num;
-   }
-   
-   public void setMaxFitness(double num)
-   {
-   	maxFitness = num;
-   }
-   
-   public double getMaxFitness()
-   {
-   	return maxFitness;
-   }
-   
-   public void setMaxAllowedValues(Vector values)
-   {
-   	maxAllowedValues = values;
-   }
-   
-   public void setMinAllowedValues(Vector values)
-   {
-   	minAllowedValues = values;
-   }
-   
-   public Vector getMaxAllowedValues()
-   {
-   	return maxAllowedValues;
-   }
-   
-   public Vector getMinAllowedValues()
-   {
-   	return minAllowedValues;
    }
 }

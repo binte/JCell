@@ -44,13 +44,13 @@ public Takeover(int x, int y)
 	numPreviousBest = 0.0;
 }
 
-public void start (Repast _repast)
+public void start (String dataFile, Repast _repast, int genLimit)
 {
    repast = _repast;
    Random r = new Random();
    
    //CellularGA cea = new SelectionCEA(r);
-   cea = new SynchronousCEAStepbyStep(r);
+   cea = new SynchronousCEAStepbyStep(r, genLimit);
 	//((SynchronousCEAStepbyStep)cea).setMaxFitness(maxFitness);
    Population pop = new PopGrid(x,y);
 
@@ -65,7 +65,7 @@ public void start (Repast _repast)
    // One unique individual is set to maxfitness
    pop.getIndividual(r.nextInt(pop.getPopSize())).setFitness(new Double(maxFitness));
 
-   Problem problem = new TakeoverProblem(maxFitness);
+   Problem problem = new TakeoverProblem(dataFile, maxFitness);
    
    SimpleStats statistic = new SimpleStats();
    // Set parameters of CEA

@@ -25,9 +25,10 @@ public class OneMax extends Problem
 	public static final int longitCrom = 500; // Length of chromosomes
 	public static final double maxFitness = 500.0; // Maximum Fitness Value
 	
-	public OneMax()
+	public OneMax(String dataFile)
 	{
-    	super();
+    	super(dataFile);
+    	
 		variables = longitCrom;
 		super.maxFitness = maxFitness;
     	Target.maximize = true;

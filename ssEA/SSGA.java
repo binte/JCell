@@ -13,9 +13,9 @@ import jcell.*;
 
 public class SSGA extends EvolutionaryAlg
 {
-   public SSGA(Random r)
+   public SSGA(Random r, int genLimit)
    {
-      super(r);
+      super(r, genLimit);
    }
    
    public void experiment()
@@ -28,8 +28,9 @@ public class SSGA extends EvolutionaryAlg
   	  Integer ind[] = new Integer[2];      // For avoiding the same individual to be selected twice
  
       
-      problem.reset(); // Set evaluations to 0
-      problem.evaluatePopulation(population);
+      this.problem.reset(); // Set evaluations to 0
+      
+      this.problem.evaluatePopulation(population);
             
       int worst = 0;
       if (multiobjective)

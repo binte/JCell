@@ -24,9 +24,9 @@ public class Schaffer extends Problem
     public  final static int    longitCrom 		= 1 ; // Number of variables
     public  final static int    numberOfFuncts	= 2 ;
     
-	public Schaffer(EvolutionaryAlg cmoea)
+	public Schaffer(String dataFile, EvolutionaryAlg cmoea)
 	{
-		super(); 
+		super(dataFile); 
 		
 		variables = longitCrom;
 		functions = numberOfFuncts;

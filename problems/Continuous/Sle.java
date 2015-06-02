@@ -35,16 +35,17 @@ public class Sle extends Problem{
 	 
     private double [] b = {40.0, 50.0, 47.0, 59.0, 45.0, 35.0, 53.0, 50.0, 55.0, 40.0};
 
-  public Sle() {
-      super() ;
+  public Sle(String dataFile) {
+	  
+      super(dataFile);
       
       Target.maximize = false;
       maxFitness = 0.0;
       variables = 10;
-      minAllowedValues = new Vector(numberOfVariables());
-      maxAllowedValues = new Vector(numberOfVariables());
+      minAllowedValues = new Vector(this.getVariables());
+      maxAllowedValues = new Vector(this.getVariables());
       
-      for (int i=0; i< numberOfVariables(); i++)
+      for (int i=0; i< this.getVariables(); i++)
       {
   		minAllowedValues.add(new Double(-9.0));
   		maxAllowedValues.add(new Double(11.0));

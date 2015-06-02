@@ -23,17 +23,18 @@ public class Griewangk_Classic extends Problem{
   
 	private double d = 4000.0;
   
-  public Griewangk_Classic() {
-      super() ;
+  public Griewangk_Classic(String dataFile) {
+	  
+      super(dataFile);
 
       Target.maximize = false;
       variables = 25;
       maxFitness = 0.0;
 
-      minAllowedValues = new Vector (numberOfVariables());
-      maxAllowedValues = new Vector (numberOfVariables());
+      minAllowedValues = new Vector (this.getVariables());
+      maxAllowedValues = new Vector (this.getVariables());
       
-      for (int i=0; i< numberOfVariables(); i++)
+      for (int i=0; i< this.getVariables(); i++)
       {
   		minAllowedValues.add(new Double(-600.0));
   		maxAllowedValues.add(new Double(600.0));

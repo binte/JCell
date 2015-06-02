@@ -22,7 +22,7 @@ public class ComplexStats implements Statistic
    public static final int VARIANCE_FIT  = 6;
    public static final int STD_DEV_FIT   = 7;
    public static final int PEARSON_FIT   = 8;
-   public static final int ENTROPY_PHEN   = 9;
+   public static final int ENTROPY_PHEN  = 9;
    
    // For the hierarchical model
    public static final int NR_SWAPS = 10;

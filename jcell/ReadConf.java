@@ -29,6 +29,7 @@ import java.util.Random;
 
 import operators.mutation.*;
 import operators.recombination.*;
+import ExceptionHandlers.*;
 
 
 public class ReadConf {
@@ -38,6 +39,7 @@ public class ReadConf {
 	 */
 
 	protected String filename;
+	protected String dataFile;
 	protected EvolutionaryAlg ea;
 	protected StoreProperties properties;
 	protected Random r;
@@ -71,21 +73,6 @@ public class ReadConf {
 	private final static int BypassLinksClustersDf  = 1; // Default number of clusters in the network of the problem
 	private final static boolean synchronousUpdateDf= true; // Algorithms are synchronous by default
 
-	public class MissedPropertyException extends Exception {
-
-		private String parameterName;
-		
-		private static final long serialVersionUID = 1;
-
-		public MissedPropertyException(String parameterName) {
-			super("Configuration parameter needed: '" + parameterName + "'");
-			this.parameterName = parameterName;
-		}
-
-		public String getParameterName() {
-			return parameterName;
-		}
-	}
 
 	public class StoreProperties {
 
@@ -132,14 +119,17 @@ public class ReadConf {
 		}
 	}
 
-	public ReadConf(String filename, Random r) {
+	public ReadConf(String filename, String dataFile, Random r) {
+		
 		super();
 		this.filename = filename;
+		this.dataFile = dataFile;
 		this.r = r;
 		properties = new StoreProperties();
 	}
 
 	public void SetConfFile(String filename) {
+		
 		this.filename = filename;
 	}
 
@@ -154,7 +144,7 @@ public class ReadConf {
 			System.out.println(line);
 	}
 	
-	public EvolutionaryAlg getParameters() {
+	public EvolutionaryAlg getParameters(String dataFile, int genLimit) {
 
 		try
 		{
@@ -172,7 +162,7 @@ public class ReadConf {
 				writeLine("Limit of evaluations not provided. Default value: " + evaluationsLimitDf);
 			else
 				evaluationsLimit = new Integer(evals);
-			
+
 			Class c;
 			// cellular, generational, steady-state, or distributed GA
 			String alg = properties.getProperty("Algorithm");
@@ -183,18 +173,18 @@ public class ReadConf {
 				writeLine("Number of islands not provided. Default number of islands: " + islandsDf);
 				islands = islandsDf;
 			}
-			
+
 			Population pop = null;
 			
 			if (alg.equalsIgnoreCase("cellular"))
-				ea = new CellularGA(r);
+				ea = new CellularGA(r, genLimit);
 			else if (alg.equalsIgnoreCase("generational"))
-				ea = new GenGA(r);
+				ea = new GenGA(r, genLimit);
 			else if (alg.equalsIgnoreCase("steady-state"))
 				//ea = new SSGAEfficient(r);
-				ea = new SSGA(r);
+				ea = new SSGA(r, genLimit);
 			else if (alg.equalsIgnoreCase("distributed"))
-				ea = new DistributedGA(r);
+				ea = new DistributedGA(r, genLimit);
 			else
 			{
 				if (alg.equalsIgnoreCase("cellular"))
@@ -220,7 +210,7 @@ public class ReadConf {
 					}
 				}
 			}
-			
+		
 			int begin = 0, end = 0;
 			
 			// Set the population shape
@@ -415,7 +405,7 @@ public class ReadConf {
 				else if (cons[i].getParameterTypes().length == 2) // When the problem needs to read the instance from a file
 				{
 					// The file wherein the instance to solve is 
-					String instance = properties.getProperty("InstanceFile");
+					String instance = this.dataFile;
 					Object[] aux = new Object[2];
 					for (int j=0; j<2; j++)
 					{
@@ -503,7 +493,7 @@ public class ReadConf {
 	                    //	if the parameter is an EvolutionaryAlg object (required for MO problems)
 						{
 //						    // The file wherein the instance to solve is 
-							String instance = properties.getProperty("InstanceFile");
+							String instance = this.dataFile;
 							String[] aux = new String[1];
 							aux[0] = (String)instance;
 							problem = (Problem) cons[i].newInstance(aux); // Constructor called
@@ -511,7 +501,7 @@ public class ReadConf {
 						}
 				}
 			}
-
+/*
 			// Set the Individual
 			String indiv = properties.getProperty("Individual");
 
@@ -524,9 +514,9 @@ public class ReadConf {
 			individual = (Individual) c.newInstance();
 			individual.setMinMaxAlleleValue(true, problem.getMinAllowedValues());
 			individual.setMinMaxAlleleValue(false, problem.getMaxAllowedValues());
-			individual.setLength(problem.numberOfVariables());
+			individual.setLength(problem.getVariables());
 			individual.setNumberOfFuncts(problem.numberOfObjectives());
-
+*/
 			/*
 			 * A primeira linha de c—digo parece-me escusada. 
 			 * 
@@ -539,7 +529,7 @@ public class ReadConf {
 	
 			*/
 			
-			pop.setTopPop(individual, problem.variables); // initialization of the initial population
+	//		pop.setTopPop(individual, problem.variables); // initialization of the initial population
 			
 			CellUpdate cu = null;
 			
@@ -846,8 +836,8 @@ public class ReadConf {
 			ea.setParam(CellularGA.PARAM_MUTATION_PROB, mutation);
 			if (alleleMutation)
 				ea.setParam(CellularGA.PARAM_ALLELE_MUTATION_PROB, new Double(alleleMutationProb)); // probability of allele mutation
-			else if (problem.numberOfVariables() > 1)
-				ea.setParam(CellularGA.PARAM_ALLELE_MUTATION_PROB, new Double(1.0/(double)problem.numberOfVariables())); // probability of allele mutation
+			else if (problem.getVariables() > 1)
+				ea.setParam(CellularGA.PARAM_ALLELE_MUTATION_PROB, new Double(1.0/(double)problem.getVariables())); // probability of allele mutation
 			else
 				ea.setParam(CellularGA.PARAM_ALLELE_MUTATION_PROB, new Double(0.5)); // probability of allele mutation
 			ea.setParam(CellularGA.PARAM_CROSSOVER_PROB, crossover);
@@ -928,7 +918,7 @@ public class ReadConf {
 				else
 				{
 					ea.setParam(CellularGA.PARAM_DISPLAY, new CGADisplay((CellularGA)ea, problem.getMaxFitness(),CGADisplay.NO_TEXT + CGADisplay.DISPLAY_VALUE));
-					ea.setParam(CellularGA.PARAM_DISPLAY2, new CGADisplay((CellularGA)ea, problem.numberOfVariables(),CGADisplay.NO_TEXT + CGADisplay.DISPLAY_BESTDISTANCE));		  
+					ea.setParam(CellularGA.PARAM_DISPLAY2, new CGADisplay((CellularGA)ea, problem.getVariables(),CGADisplay.NO_TEXT + CGADisplay.DISPLAY_BESTDISTANCE));		  
 				}
 			}
 			

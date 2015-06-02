@@ -22,8 +22,9 @@ public class Sum extends Problem
 {
 	private double maxValue;
 	
-	public Sum() {
+	public Sum(String dataFile) {
 		
+		super(dataFile);
 		Target.maximize = true;
 	    variables = 25; // length of the individual's chromosome
 	    maxValue = Integer.MAX_VALUE; // Maximum fitness value

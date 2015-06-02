@@ -31,9 +31,9 @@ public class FMS extends Problem
 
 	double[] target = new double[101];
 
-	public FMS()
+	public FMS(String dataFile)
 	{
-		super();
+		super(dataFile);
 		variables = longitCrom;
 		super.maxFitness = maxFitness;
 		

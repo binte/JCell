@@ -29,13 +29,13 @@ public class DNAFragmentAssembling extends Problem {
 	private int[][] score;
 	private int nbOfFrags = 0;
 
-	public DNAFragmentAssembling(String filename)
+	public DNAFragmentAssembling(String dataFile)
 	{
-		super();
+		super(dataFile);
 		super.maxFitness = maxFitness;
 		Target.maximize = true;
 
-		readInst(filename);
+		readInst(dataFile);
 	}
 
 	public void readInst(String filename)

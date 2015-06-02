@@ -35,16 +35,18 @@ public class PEAK extends Problem
 
 	private Random r;
 
-	public PEAK()
+	public PEAK(String dataFile)
 	{
-		super();
+		super(dataFile);
+		
 		r = null;
 		super.maxFitness = maxFitness;
 	}
 	
-	public PEAK(Random r)
+	public PEAK(String dataFile, Random r)
 	{
-		super();
+		super(dataFile);
+		
 		variables = longitCrom;
 		super.maxFitness = maxFitness;
 		

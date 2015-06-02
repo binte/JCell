@@ -24,9 +24,9 @@ public class Fonseca extends Problem
     public  final static int    numberOfFuncts	= 2; // Number of functions of the Fonseca function
     
 
-	public Fonseca(CellularGA cmoea)
+	public Fonseca(String dataFile, CellularGA cmoea)
 	{
-		super();
+		super(dataFile);
 		
 		variables = longitCrom; // Number of variables of the Fonseca function
 	    functions = numberOfFuncts; // Number of functions of the Fonseca function

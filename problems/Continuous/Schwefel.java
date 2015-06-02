@@ -19,17 +19,18 @@ import java.lang.Math;
 
 public class Schwefel extends Problem{
   
-  public Schwefel() {
-      super() ;
+  public Schwefel(String dataFile) {
+	  
+      super(dataFile) ;
       
       Target.maximize = false;
       maxFitness = 0.0;
       variables = 25;
 
-      minAllowedValues = new Vector (numberOfVariables());
-      maxAllowedValues = new Vector (numberOfVariables());
+      minAllowedValues = new Vector (this.getVariables());
+      maxAllowedValues = new Vector (this.getVariables());
       
-      for (int i=0; i< numberOfVariables(); i++)
+      for (int i=0; i< this.getVariables(); i++)
       {
   		minAllowedValues.add(new Double(-65.536));
   		maxAllowedValues.add(new Double(65.536));

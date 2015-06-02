@@ -22,17 +22,18 @@ import java.lang.Math;
 public class Rastrigin_Classic extends Problem{
   
   /** Creates new Rastrigin */
-  public Rastrigin_Classic() {
-      super() ;
+  public Rastrigin_Classic(String dataFile) {
+	  
+      super(dataFile);
 
       Target.maximize = false;
       variables = 25; 
       maxFitness = 0.0;
 
-      minAllowedValues = new Vector (numberOfVariables());
-      maxAllowedValues = new Vector (numberOfVariables());
+      minAllowedValues = new Vector (this.getVariables());
+      maxAllowedValues = new Vector (this.getVariables());
       
-      for (int i=0; i< numberOfVariables(); i++)
+      for (int i=0; i< this.getVariables(); i++)
       {
   		minAllowedValues.add(new Double(-5.12));
   		maxAllowedValues.add(new Double(5.12));

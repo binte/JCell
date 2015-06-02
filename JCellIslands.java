@@ -44,19 +44,26 @@ public class JCellIslands implements GenerationListener
     public static void main (String args[]) throws Exception
     {
     	
+    	// O número de argumentos necessário carece de validação, mas parece que não é preciso passar o nome do ficheiro de configuração
+    	if (args.length != 2)
+        {
+           System.out.println("Error. Try java JCell <DataFile> <GenerationLimit>.");
+           System.exit(-1);
+        }
+    	
 		Random r = new Random(); // seed for the random number generator
 		
 		long start, end; // starting and ending time
 	
 		JCellIslands sel = new JCellIslands();
 		
-		EvolutionaryAlg ea = new DistributedGA(r);
+		EvolutionaryAlg ea = new DistributedGA(r, Integer.parseInt(args[1]));
 		
 		//Problem prob = new MMDP();
-		Problem prob = new MTTP();
+		Problem prob = new MTTP(args[0]);
 
 		ea.setParam(CellularGA.PARAM_PROBLEM, prob);
-		longitCrom = prob.numberOfVariables();
+		longitCrom = prob.getVariables();
 		numberOfFuncts = prob.numberOfObjectives();
 		
 		Population pop = new PopIsland(islands, islandSize);

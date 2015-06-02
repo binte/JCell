@@ -24,9 +24,9 @@ public class COUNTSAT extends Problem
 	public static final double maxFitness = 6860.0; // Maximum Fitness Value
 	
 
-    public COUNTSAT()
+    public COUNTSAT(String dataFile)
     {
-    	super();
+    	super(dataFile);
 		variables = longitCrom;
 		super.maxFitness = maxFitness;
     	Target.maximize = true;

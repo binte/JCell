@@ -16,9 +16,9 @@ import java.util.Random;
 public class CellularGA extends EvolutionaryAlg
 {
 
-	public CellularGA(Random r)
+	public CellularGA(Random r, int genLimit)
     {
-   	  super(r);
+   	  super(r, genLimit);
     }
 
    public PopGrid getPopulation()
@@ -41,8 +41,9 @@ public class CellularGA extends EvolutionaryAlg
 	  Integer ind[] = new Integer[2];      // Used for avoiding selecting twice the same individual as parent
       Individual neighIndivs[] = new Individual[neighborhood.getNeighSize()];
       
-      problem.reset(); // set evaluations to 0
-      problem.evaluatePopulation(population);
+      this.problem.reset(); // set evaluations to 0
+      
+      this.problem.evaluatePopulation(population);
       
       generationNumber = 0;
       

@@ -19,17 +19,18 @@ import java.lang.Math;
 
 public class Rosenbrock extends Problem {
   
-  public Rosenbrock() {
-      super() ;
+  public Rosenbrock(String dataFile) {
+	  
+      super(dataFile);
       
       Target.maximize = false;
       variables = 25; 
       maxFitness = 0.0;
 
-      minAllowedValues = new Vector (numberOfVariables());
-      maxAllowedValues = new Vector (numberOfVariables());
+      minAllowedValues = new Vector (this.getVariables());
+      maxAllowedValues = new Vector (this.getVariables());
       
-      for (int i=0; i< numberOfVariables(); i++)
+      for (int i=0; i< this.getVariables(); i++)
       {
   		minAllowedValues.add(new Double(-5.12));
   		maxAllowedValues.add(new Double(5.12));

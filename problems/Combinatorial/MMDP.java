@@ -25,9 +25,10 @@ public class MMDP extends Problem
     int subproblemsLength = 6;
     int subproblemsNumber = 40;
 
-    public MMDP()
+    public MMDP(String dataFile)
     {
-    	super();
+    	super(dataFile);
+    	
 		variables = longitCrom;
 		super.maxFitness = maxFitness;
     	Target.maximize = true;

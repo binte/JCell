@@ -17,9 +17,9 @@ public class SynchronousCEAStepbyStep extends CellularGA
 {
 	double optimum; //Mejor fitness de la poblacion
 	
-    public SynchronousCEAStepbyStep(Random r)
+    public SynchronousCEAStepbyStep(Random r, int genLimit)
     {
-	super(r);
+    	super(r, genLimit);
     }
 
     public void experiment()

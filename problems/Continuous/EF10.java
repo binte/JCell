@@ -27,17 +27,18 @@ public class EF10 extends Problem {
 	private int vars = 10;
 	
 	/** Creates new EF10 */
-	  public EF10() {
-	      super() ;
+	  public EF10(String dataFile) {
+		  
+	      super(dataFile);
 	      
 	      Target.maximize = false;
 	      variables = 10; 
 	      maxFitness = 0.0;
 
-	      minAllowedValues = new Vector (numberOfVariables());
-	      maxAllowedValues = new Vector (numberOfVariables());
+	      minAllowedValues = new Vector (this.getVariables());
+	      maxAllowedValues = new Vector (this.getVariables());
 	      
-	      for (int i=0; i< numberOfVariables(); i++)
+	      for (int i=0; i< this.getVariables(); i++)
 	      {
 	  		minAllowedValues.add(new Double(-100.0));
 	  		maxAllowedValues.add(new Double(100.0));

@@ -133,11 +133,10 @@ public abstract class EvolutionaryAlg
    
    protected AdaptivePop ANadaptation = null; // For the Anisotropic selection
 
-   public EvolutionaryAlg(Random r)
+   public EvolutionaryAlg(Random r, int genLimit)
    {
       this.r = r;
       operators = new HashMap(); //Build a HashMap for storing the operators 
-      
       
       // set default values
       population = new Population(100);
@@ -152,7 +151,7 @@ public abstract class EvolutionaryAlg
       localSearchProb = 0.0;
       targetFitness = Double.MAX_VALUE;
       generationNumber = 0;
-      generationLimit = Integer.MAX_VALUE;
+      generationLimit = genLimit;
       evaluationLimit = Integer.MAX_VALUE;
       alleleMut = 0.001;
       verbose = true;

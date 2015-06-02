@@ -15,10 +15,9 @@ public class DistributedGA extends EvolutionaryAlg
 	public int[] bestInds ;
    public int[] worstInds;
    
-   public DistributedGA(Random r)
+   public DistributedGA(Random r, int genLimit)
    {
-   	  super(r);
-      
+   	  super(r, genLimit);
    }
    
    // Returns the islands composing the population
@@ -43,8 +42,9 @@ public class DistributedGA extends EvolutionaryAlg
 	  bestInds = new int[population.getNumberIslands()];
 	  worstInds = new int[population.getNumberIslands()];
 	  
-	  problem.reset(); // Set evaluations to 0
-      problem.evaluatePopulation(population);
+	  this.problem.reset(); // Set evaluations to 0
+	  
+      this.problem.evaluatePopulation(population);
       int islands = population.getNumberIslands();
       int islandSize = population.getSizeIslands();
       

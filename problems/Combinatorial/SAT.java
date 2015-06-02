@@ -43,16 +43,18 @@ public class SAT extends Problem
 	
 	private static int fitnessFunction = SAW; 
 	
-	public SAT()
+	public SAT(String dataFile)
 	{
-		super();
+		super(dataFile);
 		super.maxFitness = maxFitness;
 	}
 	
-	public SAT(String filename, EvolutionaryAlg ea)
+	public SAT(String dataFile, EvolutionaryAlg ea)
 	{
+		super(dataFile);
+		
 		this.ea = ea;
-		readInst(filename);
+		readInst(dataFile);
 		
 		if (fitnessFunction != COUNT)
 		{

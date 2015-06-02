@@ -16,9 +16,9 @@ public class SelectionCEA extends CellularGA
 {
    private double maxFitness;
 
-   public SelectionCEA(Random r)
+   public SelectionCEA(Random r, int genLimit)
    {
-      super(r);
+      super(r, genLimit);
    }
 
    public void setMaxFitness(double maxFitness)

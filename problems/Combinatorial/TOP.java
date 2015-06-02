@@ -32,19 +32,20 @@ public class TOP extends Problem
 	private double matrix[][];				// matriz de distâncias
 	
 	private int totalScore;	// soma dos pesos de todas as tarefas que passaram o filtro
+	private int collected;  // some dos prémios recolhidos 
 	
 	private double bestFitness;
 	private ArrayList<Integer>[] bestTrip;
     
 
-    public TOP()
+    public TOP(String dataFile)
     {
-    	super();
+    	super(dataFile);
 		super.maxFitness = maxFitness;
     	Target.maximize = true;
     	    	    	
     	try {
-        	BufferedReader reader = new BufferedReader(new FileReader("dados.txt"));
+        	BufferedReader reader = new BufferedReader(new FileReader(this.dataFile));
         	Scanner input = new Scanner(reader);
 
         	this.F = Integer.parseInt(DataLoading.getParameter(input));
@@ -58,6 +59,8 @@ public class TOP extends Problem
 			for (int i = 0; i <= this.F - 1; i++)
 				this.totalScore += vertices.get(i).getScore();
 			
+			this.collected = 0;
+			
 			this.filter();
     		this.buildMatrix(); // construir a matriz de distâncias
     		
@@ -68,8 +71,6 @@ public class TOP extends Problem
     		
     		for(int i=0 ; i<this.T ; i++)
     			this.bestTrip[i] = new ArrayList<Integer>();
-    		
-System.out.println(this.toString());
     	}
     	catch (FileNotFoundException ex) {
     		System.err.println("Unable to open file: " + ex);
@@ -89,6 +90,17 @@ System.out.println(this.toString());
     		
     		System.exit(-1);
     	}
+    }
+    
+    
+    public int getTotalScore() {
+    	
+    	return this.totalScore;
+    }
+    
+    public int getCollected() {
+    	
+    	return this.collected;
     }
     
     
@@ -183,7 +195,7 @@ System.out.println(this.toString());
     	ArrayList<Integer>[] viagens_aux = new ArrayList[this.T];
     	ArrayList<Integer> maxValues = new ArrayList<Integer>(), viagens = new ArrayList<Integer>(), blackList = new ArrayList<Integer>(), auxBlackList = new ArrayList<Integer>();
     	ArrayList<Double> times = new ArrayList<Double>(this.T);
-    	TopIndividual intInd = (TopIndividual) ind;
+    	TopIndividual topInd = (TopIndividual) ind;
     	Random r = new Random();
     	boolean flag = true, fl = false;
 		double fitness = 0.0, min_dist = this.deadline + 1;
@@ -197,7 +209,7 @@ System.out.println(this.toString());
 		// inicializar o array que irá conter os tempos das viagens
 		for(int j=0 ; j<this.T ; j++)
 			times.add(0.0);
-		
+
 		/*
 		 * Enquanto for possível inserir vértices, é iterado o ciclo em baixo 
 		 */
@@ -211,7 +223,6 @@ System.out.println(this.toString());
 			*/			
 			while( !fl && ((int) blackList.size()) + viagens.size() < this.variables - 2 ) {
 
-
 				// inicializar a variável que irá conter o menor valor dos genes do cromossoma
 				min = (this.variables >= 10 ? this.variables + 1 : 10);
 				
@@ -221,11 +232,11 @@ System.out.println(this.toString());
 					/* se o gene que se encontra a ser processado tiver prioridade igual ou superior à máxima prioridade encontrada,
 					se ainda não estiver marcado para ser visitado por um viajante e se o gene não estiver na blacklist, indicando
 					que já terá sido descartado desta viagem.... */
-					if(intInd.getIntegerAllele(i) <= min && !viagens.contains(i) && !blackList.contains(i)) {
+					if(topInd.getIntegerAllele(i) <= min && !viagens.contains(i) && !blackList.contains(i)) {
 						
-						if(intInd.getIntegerAllele(i) != min) {
+						if(topInd.getIntegerAllele(i) != min) {
 							maxValues.clear();
-							min = intInd.getIntegerAllele(i);
+							min = topInd.getIntegerAllele(i);
 						}
 						
 						/* guardar o índice do gene na lista que contém 
@@ -233,7 +244,7 @@ System.out.println(this.toString());
 						maxValues.add(i);
 					}
 				}
-				
+		
 	
 				// se existirem vários genes com o mesmo valor (máximo)
 				if(maxValues.size() > 1) {
@@ -395,7 +406,7 @@ System.out.println(this.toString());
 				viagens.add(topPriorityGene);
 				
 				// atualizar o peso do alelo
-				intInd.setAllele(topPriorityGene, viagens.size());
+				topInd.setAllele(topPriorityGene, viagens.size());
 				
 				// mudar o valor da flag que assinala a escolha dum gene para colocar na viagem para recomeçar novo processo
 				fl = false;
@@ -418,7 +429,7 @@ this.pressEnterToContinue();
 					flag = false;  // atualizar a flag para sair do ciclo
 		}
 		
-		double totalPrizes = fitness;
+		int totalPrizes = ((Double)fitness).intValue();
 		
 		fitness = fitness/this.totalScore;
 		
@@ -426,44 +437,30 @@ this.pressEnterToContinue();
 			
 			this.bestFitness = fitness;
 			this.bestTrip = viagens_aux;
+			this.collected = totalPrizes;
 			
-			
-			for(int i=0 ; i<this.T ; i++) {
-
-				System.out.println("-------------- VIAGEM " + i + " || time: " + times.get(i) +" ---------------");
+			// se não se tratar de uma execução de teste
+			if(!this.testing) {
 				
-				for (int h=0 ; h < this.bestTrip[i].size() ; h++)
-					System.out.println("indice " + h + ": " + this.vertices.get(this.bestTrip[i].get(h)).getID());
+				for(int i=0 ; i<this.T ; i++) {
+	
+					System.out.println("-------------- VIAGEM " + i + " || time: " + times.get(i) +" ---------------");
+					
+					for (int h=0 ; h < this.bestTrip[i].size() ; h++)
+						System.out.println("indice " + h + ": " + this.vertices.get(this.bestTrip[i].get(h)).getID());
+					
+					
+					System.out.println("-------------------------------------------------------------------");
+				}
 				
+				System.out.println("\nTotal prémios recolhidos: " + this.collected);
 				
-				System.out.println("-------------------------------------------------------------------");
+				System.out.println("\n");
 			}
+
 			
-			System.out.println("\nTotal prémios recolhidos: " + totalPrizes);
-			
-			System.out.println("\n");			
-/*
-System.out.println("--------------- VIAGENS ---------------");
-for (int h=0 ; h < viagens.size() ; h++)
-	System.out.println("indice " + h + ": " + viagens.get(h));
-System.out.println("---------------------------------------");*/
+//this.pressEnterToContinue();
 		}
-/*		else {
-			
-			System.out.println("PASSOU");
-			
-			for(int i=0 ; i<this.T ; i++) {
-
-				System.out.println("-------------- VIAGEM " + i + " ---------------");
-				
-				for (int h=0 ; h < this.bestTrip [i].size() ; h++)
-					System.out.println("indice " + h + ": " + this.bestTrip [i].get(h));
-				
-				System.out.println("---------------------------------------");
-			}
-		}*/
-			
-//		this.pressEnterToContinue();
 		
 		return new Double(fitness);
     }
